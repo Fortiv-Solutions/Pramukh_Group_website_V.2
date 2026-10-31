@@ -1,0 +1,272 @@
+.footer {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(90% 70% at 72% 45%, #2a2018 0%, var(--c-espresso-deep) 62%),
+    var(--c-espresso-deep);
+  color: var(--c-on-dark);
+}
+
+/* Watermark: a large blurred monogram (atmosphere) with the fine gold outline drawn over it. */
+.mark {
+  position: absolute;
+  z-index: -1;
+  top: 44%;
+  left: 68%;
+  width: min(56vw, 760px);
+  aspect-ratio: 495 / 390;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+.glowWrap {
+  position: absolute;
+  inset: 0;
+}
+.glow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--c-gold);
+  opacity: 0.035;
+  filter: blur(64px);
+}
+.mark .outline {
+  left: 0;
+  top: 0;
+  width: 100%;
+  translate: none;
+}
+.mark .outline :global([data-watermark-glow]) {
+  display: none;
+}
+.mark .outline :global([data-watermark-stroke]) {
+  stroke-opacity: 0.15;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: clamp(3rem, 7vw, 8rem);
+  min-height: min(92svh, 880px);
+  padding-block: clamp(6rem, 12vw, 10rem) clamp(4rem, 8vw, 7rem);
+}
+
+.lead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(1.4rem, 2.4vw, 2rem);
+}
+.title {
+  font-size: var(--t-display-xl);
+  line-height: 1;
+  max-width: 11ch;
+}
+.accent {
+  color: var(--c-tan);
+}
+.lede {
+  max-width: 26rem;
+  font-size: var(--t-lead);
+  line-height: 1.55;
+  color: var(--c-on-dark-muted);
+}
+
+/* Offices: two by two, generous, no boxes. */
+.offices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2.5rem, 5vw, 4.5rem) clamp(2rem, 4vw, 4rem);
+}
+.office {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: var(--t-small);
+}
+.officeMark {
+  width: 22px;
+  height: 22px;
+  margin-bottom: 0.9rem;
+  fill: none;
+  stroke: var(--c-gold);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+.city {
+  font-size: var(--t-display-m);
+  line-height: 1.1;
+  margin-bottom: 0.4rem;
+}
+.addr {
+  display: flex;
+  flex-direction: column;
+  font-style: normal;
+  line-height: 1.55;
+  color: var(--c-on-dark-muted);
+  margin-bottom: 0.5rem;
+}
+.contact,
+.socials a {
+  position: relative;
+  width: fit-content;
+  color: var(--c-on-dark);
+  transition: color var(--dur-fast) ease;
+}
+.contact::after,
+.socials a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--dur) var(--ease-out);
+}
+.contact:hover,
+.socials a:hover {
+  color: var(--c-tan);
+}
+.contact:hover::after,
+.socials a:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+.socials {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+/* Base row: navigation, legal, copyright on one hairline. */
+/* Centred stack: site links, legal links, then the copyright line with the credit. Centring also keeps
+   the copyright clear of the floating contact button in the corner. */
+.base {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding-block: 1.9rem 2.1rem;
+  text-align: center;
+  border-top: 1px solid var(--c-line-dark);
+  font-size: var(--t-small);
+}
+.baseLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.6rem;
+}
+.baseLinks a {
+  color: var(--c-on-dark-muted);
+  transition: color var(--dur-fast) ease;
+}
+.baseLinks a:hover {
+  color: var(--c-on-dark);
+}
+.copy {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 1.25rem;
+  color: var(--c-on-dark-muted);
+}
+.credit a {
+  color: var(--c-on-dark);
+  text-decoration: underline;
+  text-decoration-color: var(--c-line-dark);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--dur-fast) ease;
+}
+.credit a:hover,
+.credit a:focus-visible {
+  text-decoration-color: var(--c-gold);
+}
+
+@media (max-width: 1023.98px) {
+  .main {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 4.5rem;
+  }
+  .mark {
+    left: 50%;
+    top: 34%;
+    width: min(120vw, 680px);
+  }
+}
+/* Phones: a compact directory. Each office is one block under a hairline: pin and city on one row,
+   the address as a single wrapped paragraph, then phone and email. Socials sit in one row. */
+@media (max-width: 639.98px) {
+  .main {
+    gap: 3.5rem;
+    padding-block: 5rem 3rem;
+  }
+  .title {
+    font-size: var(--t-display-xl);
+  }
+  .mark {
+    top: 22%;
+    width: 120vw;
+  }
+  .offices {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .office {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 0.65rem;
+    row-gap: 0.35rem;
+    padding-block: 1.4rem;
+    border-top: 1px solid var(--c-line-dark);
+  }
+  .office > *:not(.officeMark):not(.city) {
+    grid-column: 1 / -1;
+  }
+  .officeMark {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+  }
+  .city {
+    margin: 0;
+    font-size: var(--t-display-m);
+  }
+  .addr {
+    display: block;
+    margin: 0.3rem 0 0.4rem;
+  }
+  .addr span::after {
+    content: " ";
+  }
+  .socials {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    margin-top: 0.3rem;
+  }
+  .base {
+    gap: 1.1rem;
+    padding-block: 1.5rem 2rem;
+  }
+  .baseLinks {
+    gap: 0.6rem 1.4rem;
+  }
+  .copy {
+    font-size: var(--t-label);
+  }
+  /* Keep the last line clear of the floating WhatsApp/concierge bar. */
+  .base {
+    padding-bottom: calc(2.75rem + 10px + 16px + 1.5rem);
+  }
+}

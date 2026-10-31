@@ -1,0 +1,40 @@
+.wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(74vmin, 720px);
+  translate: -50% -54%;
+  pointer-events: none;
+}
+.glow {
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(196 163 89 / 0.16), rgb(196 163 89 / 0.05) 55%, transparent 75%);
+}
+.svg {
+  position: relative;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.fill {
+  fill: var(--c-gold);
+  opacity: 0.05;
+}
+.stroke {
+  fill: none;
+  stroke: var(--c-gold);
+  stroke-width: 1.1;
+  stroke-opacity: 0.55;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@media (max-width: 639.98px) {
+  .wrap {
+    width: 92vw;
+    translate: -50% -62%;
+  }
+}

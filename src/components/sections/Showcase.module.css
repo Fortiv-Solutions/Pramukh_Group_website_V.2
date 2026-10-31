@@ -1,0 +1,301 @@
+.showcase {
+  position: relative;
+  z-index: 2;
+  background: var(--c-ivory);
+}
+
+.marqueeWrap {
+  overflow: hidden;
+  padding-block: clamp(5rem, 11vw, 9rem) clamp(3rem, 6vw, 5rem);
+}
+.marquee {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  width: max-content;
+  font-size: clamp(3rem, 8.2vw, 9rem);
+  white-space: nowrap;
+  will-change: transform;
+}
+.star {
+  color: var(--c-gold);
+  font-size: 0.6em;
+}
+
+/* Desktop: a pinned 58/42 split. Image layers stack left; info panels stack right. */
+.stage {
+  --split: 58%;
+  position: relative;
+  height: 100svh;
+  min-height: 640px;
+  overflow: hidden;
+  background: var(--c-espresso-deep);
+  color: var(--c-on-dark);
+}
+.item {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.visual {
+  position: absolute;
+  inset: 0 calc(100% - var(--split)) 0 0;
+  overflow: hidden;
+  background: var(--c-espresso-deep);
+}
+.backdrop {
+  position: absolute;
+  inset: -4%;
+}
+.backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(18 14 10 / 0.62);
+}
+.inset {
+  position: absolute;
+  left: 5%;
+  top: 27%;
+  width: 82%;
+  aspect-ratio: 16 / 10;
+  box-shadow: 0 50px 80px -40px rgb(0 0 0 / 0.7);
+}
+/* Composition variants: alternate where the image sits within the frame. */
+.visual[data-variant="1"] .inset {
+  left: auto;
+  right: 7%;
+  top: 12%;
+  width: 52%;
+  aspect-ratio: 4 / 5;
+}
+.visual[data-variant="2"] .inset {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  box-shadow: none;
+}
+.visual[data-variant="3"] .inset {
+  left: 7%;
+  top: 9%;
+  width: 70%;
+  aspect-ratio: 3 / 2;
+}
+
+.info {
+  position: absolute;
+  inset: 0 0 0 var(--split);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2.5rem;
+  padding: clamp(2rem, 4vw, 3.5rem);
+  padding-top: 11rem;
+  background: var(--c-espresso-deep);
+  pointer-events: auto;
+}
+.number {
+  position: absolute;
+  top: clamp(2rem, 4vw, 3.5rem);
+  right: clamp(2rem, 4vw, 3.5rem);
+  font-family: var(--f-display);
+  font-size: var(--t-display-xl);
+  line-height: 0.9;
+}
+.infoBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.name {
+  font-size: var(--t-display-l);
+  color: var(--c-tan);
+}
+.location {
+  font-size: var(--t-small);
+  letter-spacing: 0.04em;
+}
+.headline {
+  margin-top: 1.5rem;
+  font-size: var(--t-lead);
+  line-height: 1.2;
+  max-width: 22ch;
+}
+.desc {
+  max-width: 36rem;
+  font-size: var(--t-small);
+  color: var(--c-on-dark-muted);
+}
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 2.25rem;
+  margin-top: 1rem;
+}
+.facts dt {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--c-on-dark-muted);
+}
+.facts dd {
+  font-size: var(--t-small);
+}
+.more {
+  align-self: stretch;
+  justify-content: space-between;
+  border-top: 0;
+  color: var(--c-on-dark);
+}
+.more::after {
+  background: var(--c-line-dark) !important;
+}
+
+.index {
+  position: absolute;
+  z-index: 20;
+  top: clamp(2rem, 4vw, 3.5rem);
+  left: calc(var(--split) + clamp(2rem, 4vw, 3.5rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.index button {
+  display: flex;
+  gap: 1.25rem;
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-height: 28px;
+  align-items: center;
+  padding-block: 0.15rem;
+  color: rgb(246 239 228 / 0.62);
+  transition: color var(--dur-fast) ease;
+}
+.index button span {
+  min-width: 4.5rem;
+}
+.index button:hover,
+.index button[aria-current="true"] {
+  color: var(--c-on-dark);
+}
+
+/* Below desktop: the stage stays pinned and layered. The photo fills the screen and the text sits on a
+   fade at the bottom, so there is room for the full copy on a phone. */
+@media (max-width: 1023.98px) {
+  .stage {
+    min-height: 560px;
+  }
+  .index {
+    display: none;
+  }
+  .visual {
+    inset: 0;
+  }
+  .backdrop {
+    display: none;
+  }
+  .visual .inset,
+  .visual[data-variant] .inset {
+    left: 0;
+    right: auto;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    box-shadow: none;
+  }
+  .info {
+    inset: auto 0 0 0;
+    justify-content: flex-start;
+    gap: 1.1rem;
+    padding: 8rem var(--gutter) 1.75rem;
+    background: linear-gradient(
+      to top,
+      var(--c-espresso-deep) 0%,
+      rgb(27 21 16 / 0.94) 58%,
+      rgb(27 21 16 / 0) 100%
+    );
+  }
+  .number {
+    top: 4.5rem;
+    right: var(--gutter);
+    font-size: var(--t-display-m);
+    color: var(--c-tan);
+  }
+  .infoBody {
+    gap: 0.5rem;
+  }
+  .headline {
+    margin-top: 0.4rem;
+    max-width: none;
+  }
+  .desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .facts {
+    gap: 0.75rem 1.75rem;
+    margin-top: 0.4rem;
+  }
+}
+/* Reduced motion: nothing is pinned, so each project is its own stacked block. */
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    height: auto;
+    min-height: 0;
+  }
+  .index {
+    display: none;
+  }
+  .item {
+    position: relative;
+    pointer-events: auto;
+  }
+  .visual {
+    position: relative;
+    inset: auto;
+    aspect-ratio: 4 / 3;
+  }
+  .backdrop {
+    display: none;
+  }
+  .visual .inset,
+  .visual[data-variant] .inset {
+    left: 0;
+    right: auto;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    box-shadow: none;
+  }
+  .info {
+    position: relative;
+    inset: auto;
+    padding: 2rem var(--gutter) 3.5rem;
+    gap: 2rem;
+    background: var(--c-espresso-deep);
+  }
+  .number {
+    position: static;
+    font-size: var(--t-display-xl);
+    color: var(--c-on-dark-muted);
+  }
+  .desc {
+    display: block;
+    overflow: visible;
+  }
+}
+
+/* The photo is a pointer shortcut to the project page (the "View" cursor appears over it). */
+.photoLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: auto;
+}

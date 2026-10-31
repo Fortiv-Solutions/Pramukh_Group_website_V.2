@@ -1,0 +1,122 @@
+.philosophy {
+  position: relative;
+  z-index: 2;
+  background: var(--grad-sand);
+}
+
+.pin {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2.5rem, 5vh, 4.5rem);
+  min-height: 100svh;
+  padding-block: clamp(5rem, 10vh, 7rem) clamp(3rem, 6vh, 4rem);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  text-align: center;
+}
+.head :global(.eyebrow) {
+  color: var(--c-ink-muted);
+}
+.title {
+  font-size: var(--t-display-xl);
+}
+
+.track {
+  display: flex;
+  gap: clamp(0.75rem, 1.2vw, 1.25rem);
+  padding-inline: max(var(--gutter), calc((100vw - var(--container)) / 2 + var(--gutter)));
+  will-change: transform;
+}
+.card {
+  flex: 0 0 clamp(300px, 31vw, 470px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-height: clamp(19rem, 40vh, 25rem);
+  padding: clamp(1.5rem, 2.2vw, 2.1rem);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.96) 0%, rgb(255 255 255 / 0.5) 100%);
+  border: 1px solid rgb(255 255 255 / 0.9);
+  box-shadow: 0 30px 60px -40px rgb(51 40 32 / 0.4);
+}
+.num {
+  font-family: var(--f-display);
+  font-size: var(--t-display-l);
+  line-height: 1;
+  margin-bottom: auto;
+  padding-bottom: 2.5rem;
+}
+.cardTitle {
+  font-size: var(--t-lead);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+.cardBody {
+  font-size: var(--t-small);
+  color: var(--c-ink-muted);
+  text-wrap: pretty;
+}
+.card[data-accent="true"] {
+  background: var(--c-olive);
+  border-color: var(--c-olive);
+  color: var(--c-on-dark);
+}
+.card[data-accent="true"] .num {
+  color: var(--c-tan);
+}
+.card[data-accent="true"] .cardBody {
+  color: var(--c-on-dark-muted);
+}
+
+.progressWrap {
+  display: flex;
+  justify-content: center;
+}
+.progress {
+  width: min(320px, 50vw);
+  height: 1px;
+  background: var(--c-line);
+  overflow: hidden;
+}
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--c-espresso);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* Below desktop: a native swipe rail. */
+@media (max-width: 1023.98px), (prefers-reduced-motion: reduce) {
+  .pin {
+    min-height: 0;
+    padding-block: var(--section-y);
+  }
+  .track {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    padding-inline: var(--gutter);
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  .track::-webkit-scrollbar {
+    display: none;
+  }
+  .card {
+    flex-basis: min(80vw, 380px);
+    scroll-snap-align: start;
+  }
+  .progressWrap {
+    display: none;
+  }
+}

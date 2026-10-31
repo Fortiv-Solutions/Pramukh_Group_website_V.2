@@ -1,0 +1,737 @@
+.where {
+  position: relative;
+  z-index: 2;
+  padding-block: var(--section-y);
+  background: var(--c-ivory);
+}
+
+/* Header: title + lede left, the development pipeline as a plain row of figures right. */
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 2rem 4rem;
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+.title {
+  font-size: var(--t-display-l);
+}
+.lede {
+  margin-top: 1rem;
+  max-width: 34rem;
+  color: var(--c-ink-muted);
+}
+.pipeline {
+  display: flex;
+  gap: clamp(1.5rem, 3vw, 3.5rem);
+}
+.pipeline li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-left: 1.1rem;
+  border-left: 1px solid var(--c-line);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+}
+.pipelineValue {
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--c-ink);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+}
+
+/* ---------- Map ---------- */
+.mapCol {
+  min-width: 0;
+}
+.stage {
+  --tilt: 0deg;
+  position: relative;
+  aspect-ratio: 5 / 4;
+  container-type: size;
+  overflow: hidden;
+  border-radius: calc(var(--bezel-r) - 7px);
+  background: radial-gradient(120% 100% at 30% 40%, #e9eff1 0%, #dce5e8 100%);
+  box-shadow: inset 0 1px 1px rgb(255 255 255 / 0.7);
+  isolation: isolate;
+}
+.tilt {
+  position: absolute;
+  inset: 0;
+  transform: perspective(1400px) rotateX(var(--tilt));
+  transform-origin: 50% 62%;
+  transform-style: preserve-3d;
+}
+/* The camera. The plane is always 5:4 (1000 x 800 units, 1 unit = 0.1cqw) whatever the stage shape;
+   (--fx, --fy) is the focus point in plane units, centred in the stage, and --s the zoom. */
+.plane {
+  --fx: 525;
+  --fy: 386;
+  --s: 1.15;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100cqw;
+  height: 80cqw;
+  transform-origin: 0 0;
+  transform-style: preserve-3d;
+  transform: translate(calc(50cqw - var(--fx) * 0.1cqw * var(--s)), calc(50cqh - var(--fy) * 0.1cqw * var(--s)))
+    scale(var(--s));
+}
+.geo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.land {
+  fill: #fbf6ec;
+}
+/* Stroke widths are in map units, divided by the zoom so lines keep a fine, constant width on screen
+   (non-scaling-stroke ignores CSS transforms, so it cannot be used here). */
+.coast {
+  fill: none;
+  stroke: rgb(51 40 32 / 0.3);
+  stroke-width: calc(1.4px / var(--s));
+}
+.river {
+  fill: none;
+  stroke: #b3c4cc;
+  stroke-width: calc(2.6px / var(--s));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.highway {
+  fill: none;
+  stroke: rgb(51 40 32 / 0.12);
+  stroke-width: calc(2px / var(--s));
+}
+
+/* Flat labels on the ground: counter-scaled so they keep their size at any zoom. */
+.sea,
+.town {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(calc(1 / var(--s)));
+  white-space: nowrap;
+  pointer-events: none;
+}
+.sea {
+  font-family: var(--f-display);
+  font-size: var(--t-small);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgb(70 92 104 / 0.55);
+}
+.town {
+  font-size: var(--t-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(28 23 18 / 0.32);
+}
+
+/* Markers and pins: a flat layer above the tilted ground. Each frame the camera projects their map
+   position through the tilt and writes the transform (see apply() in the component), so they stay
+   upright and are never sliced by the 3D ground. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+.overlay[data-ready="true"] {
+  visibility: visible;
+}
+.marker,
+.pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0;
+  transform-origin: 50% 100%;
+  pointer-events: auto;
+  transition:
+    opacity 0.45s ease,
+    visibility 0s linear 0s;
+}
+.marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.marker[data-visible="false"],
+.pin[data-visible="false"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    visibility 0s linear 0.3s;
+}
+
+.markerDot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--c-espresso-deep);
+  border: 1.5px solid var(--c-gold);
+  box-shadow: 0 8px 18px -6px rgb(27 21 16 / 0.55);
+  transition: transform 0.4s var(--ease-out);
+}
+.markerDot::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 1.5px;
+  height: 9px;
+  translate: -50% 0;
+  background: var(--c-gold);
+}
+.markerMono {
+  width: 56%;
+  fill: var(--c-gold);
+}
+.markerLabel {
+  position: absolute;
+  top: 2px;
+  left: calc(100% + 10px);
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgb(255 253 249 / 0.92);
+  box-shadow: 0 4px 14px -6px rgb(27 21 16 / 0.35);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+  white-space: nowrap;
+}
+.markerLabel sup {
+  font-size: 0.8em;
+  color: var(--c-gold);
+}
+.marker[data-side="left"] .markerLabel,
+.marker[data-side="left-low"] .markerLabel {
+  left: auto;
+  right: calc(100% + 10px);
+}
+.marker[data-side="left-low"] .markerLabel {
+  top: 34px;
+}
+.marker:hover .markerDot,
+.marker:focus-visible .markerDot {
+  transform: translateY(-3px) scale(1.08);
+}
+
+.pinBody {
+  position: relative;
+  display: block;
+}
+.pinHead {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50% 50% 50% 4px;
+  rotate: -45deg;
+  background: var(--c-espresso-deep);
+  border: 1.5px solid var(--c-gold);
+  box-shadow: 0 6px 14px -5px rgb(27 21 16 / 0.6);
+  transition:
+    background-color 0.3s ease,
+    transform 0.35s var(--ease-out);
+}
+.pinMono {
+  width: 58%;
+  rotate: 45deg;
+  fill: var(--c-gold);
+  transition: fill 0.3s ease;
+}
+.pin[data-active="true"] {
+  z-index: 100000 !important;
+}
+.pin[data-active="true"] .pinHead {
+  background: var(--c-gold);
+  transform: scale(1.18);
+}
+.pin[data-active="true"] .pinMono {
+  fill: var(--c-espresso-deep);
+}
+.pinCard {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: max-content;
+  max-width: 220px;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 30px -14px rgb(27 21 16 / 0.5);
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 6px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.35s var(--ease-out),
+    visibility 0s linear 0.25s;
+  pointer-events: none;
+}
+.pinCard strong {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: var(--t-body);
+  color: var(--c-ink);
+}
+.pinCard span {
+  font-size: var(--t-label);
+  line-height: 1.4;
+  color: var(--c-ink-muted);
+}
+.pinCard em {
+  font-style: normal;
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9a7b35;
+}
+.pin[data-active="true"] .pinCard {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition:
+    opacity 0.25s ease,
+    transform 0.35s var(--ease-out),
+    visibility 0s;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 60%, rgb(255 252 247 / 0.5) 100%);
+}
+.back {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: rgb(255 253 249 / 0.92);
+  border: 1px solid var(--c-line);
+  box-shadow: 0 6px 18px -10px rgb(27 21 16 / 0.45);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background-color 0.25s ease;
+}
+.back:hover {
+  background: #fff;
+}
+.back svg {
+  width: 0.85rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+/* ---------- Panel ---------- */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  /* Match the map's height; the list scrolls inside. */
+  height: 0;
+  min-height: 100%;
+}
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--c-line);
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-line) transparent;
+}
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name status" "meta status";
+  align-items: center;
+  gap: 0.15rem 1rem;
+  padding: 0.85rem 0.6rem;
+  border-bottom: 1px solid var(--c-line);
+  transition: background-color 0.3s ease;
+}
+.row[data-active="true"] {
+  background: var(--c-cream);
+}
+.rowName {
+  grid-area: name;
+  font-family: var(--f-display);
+  font-size: var(--t-lead);
+  line-height: 1.15;
+}
+.rowMeta {
+  grid-area: meta;
+  font-size: var(--t-small);
+  color: var(--c-ink-muted);
+}
+.rowStatus {
+  grid-area: status;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--c-line);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 1023.98px) {
+  .head {
+    grid-template-columns: 1fr;
+  }
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .panel {
+    height: auto;
+    min-height: 0;
+  }
+  /* No nested scroller on touch layouts: swipes over the list always move the page. */
+  .list {
+    overflow: visible;
+  }
+}
+@media (max-width: 639.98px) {
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .pipeline li {
+    padding-left: 0.7rem;
+    font-size: var(--t-label);
+  }
+  .pipelineValue {
+    font-size: var(--t-display-m);
+  }
+  .stage {
+    aspect-ratio: 4 / 5;
+  }
+  .markerDot {
+    width: 28px;
+    height: 28px;
+  }
+  .markerLabel {
+    padding: 0.25rem 0.5rem;
+    font-size: var(--t-label);
+  }
+  .marker[data-side="left-low"] .markerLabel {
+    top: 30px;
+  }
+}
+
+/* ---------- City selector: double-bezel photo cards ---------- */
+.cities {
+  --bezel-r: 22px;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.75rem, 1.4vw, 1.25rem);
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+.cityCard {
+  display: block;
+  width: 100%;
+  padding: 6px;
+  border-radius: var(--bezel-r);
+  background: rgb(51 40 32 / 0.04);
+  border: 1px solid rgb(51 40 32 / 0.08);
+  text-align: left;
+  transition:
+    transform 0.7s var(--ease),
+    background-color 0.5s ease,
+    border-color 0.5s ease,
+    box-shadow 0.7s var(--ease);
+}
+.cityPhoto {
+  display: block;
+  aspect-ratio: 16 / 10;
+  border-radius: calc(var(--bezel-r) - 6px);
+  box-shadow: inset 0 1px 1px rgb(255 255 255 / 0.2);
+}
+.cityPhoto img {
+  filter: saturate(0.85);
+  transition:
+    transform 1.2s var(--ease),
+    filter 0.6s ease;
+}
+.cityCaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 0.6rem 0.55rem;
+}
+.cityCardName {
+  font-size: var(--t-display-m);
+  line-height: 1;
+}
+.cityCardCount {
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+  white-space: nowrap;
+}
+.cityCard[aria-pressed="true"] {
+  background: var(--c-espresso-deep);
+  border-color: var(--c-espresso-deep);
+  color: var(--c-on-dark);
+  box-shadow: 0 24px 50px -30px rgb(27 21 16 / 0.7);
+}
+.cityCard[aria-pressed="true"] .cityCardCount {
+  color: var(--c-tan);
+}
+.cityCard[aria-pressed="true"] .cityPhoto img {
+  filter: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .cityCard:hover {
+    transform: translateY(-4px);
+  }
+  .cityCard:hover .cityPhoto img {
+    transform: scale(1.06);
+    filter: none;
+  }
+}
+.cityCard:active {
+  transform: scale(0.98);
+}
+
+/* ---------- Map frame (double bezel), chip and legend ---------- */
+.shell {
+  --bezel-r: 26px;
+  padding: 7px;
+  border-radius: var(--bezel-r);
+  background: rgb(51 40 32 / 0.04);
+  border: 1px solid rgb(51 40 32 / 0.08);
+}
+.chip {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  background: rgb(255 253 249 / 0.82);
+  border: 1px solid rgb(255 255 255 / 0.9);
+  box-shadow: 0 8px 24px -14px rgb(27 21 16 / 0.4);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+}
+.legend {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.45rem;
+  border-radius: 999px;
+  background: rgb(255 253 249 / 0.82);
+  border: 1px solid rgb(255 255 255 / 0.9);
+  font-size: var(--t-label);
+  color: var(--c-ink-muted);
+}
+.legendPin {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50% 50% 50% 3px;
+  rotate: -45deg;
+  background: var(--c-espresso-deep);
+  border: 1px solid var(--c-gold);
+}
+.legendMono {
+  width: 60%;
+  rotate: 45deg;
+  fill: var(--c-gold);
+}
+
+/* ---------- Overview state of the panel ---------- */
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 2rem 0.25rem;
+}
+.emptyNum {
+  font-size: var(--t-display-xl);
+  line-height: 0.9;
+}
+.emptyLabel {
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #9a7b35;
+}
+/* Overview panel: the headline number, then one tall row per city that shares the remaining height. */
+.list[data-all] {
+  display: flex;
+  flex-direction: column;
+}
+.empty {
+  flex: none;
+}
+.cityRowItem {
+  /* Share spare height evenly, but never shrink below the row's own content (long locality lists wrap). */
+  flex: 1 0 auto;
+  display: flex;
+  min-height: 5.75rem;
+}
+.cityRow {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name count" "places arrow";
+  align-items: center;
+  gap: 0.35rem 1rem;
+  padding: 0.9rem 0.6rem;
+  border-top: 1px solid var(--c-line);
+  text-align: left;
+  transition: background-color 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.cityRowName {
+  grid-area: name;
+  align-self: end;
+  font-size: var(--t-display-m);
+  line-height: 1.05;
+}
+.cityRowPlaces {
+  grid-area: places;
+  align-self: start;
+  font-size: var(--t-small);
+  color: var(--c-ink-muted);
+}
+.cityRowCount {
+  grid-area: count;
+  align-self: end;
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9a7b35;
+}
+.cityRowArrow {
+  grid-area: arrow;
+  justify-self: end;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: 1px solid var(--c-line);
+  transition:
+    background-color 0.5s cubic-bezier(0.32, 0.72, 0, 1),
+    color 0.5s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.cityRowArrow svg {
+  width: 0.9rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cityRow:hover,
+.cityRow:focus-visible {
+  background: var(--c-cream);
+}
+.cityRow:hover .cityRowArrow,
+.cityRow:focus-visible .cityRowArrow {
+  background: var(--c-espresso);
+  border-color: var(--c-espresso);
+  color: var(--c-ivory);
+  transform: translateX(3px);
+}
+.cityRow:active .cityRowArrow {
+  transform: scale(0.94);
+}
+
+@media (max-width: 1023.98px) {
+  .cities {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 639.98px) {
+  .cities {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+  .cities::-webkit-scrollbar {
+    display: none;
+  }
+  .cities li {
+    flex: 0 0 62vw;
+    scroll-snap-align: start;
+  }
+  .legend {
+    font-size: var(--t-label);
+  }
+  .chip {
+    top: auto;
+    bottom: 14px;
+    right: 14px;
+  }
+  .legend {
+    display: none;
+  }
+}

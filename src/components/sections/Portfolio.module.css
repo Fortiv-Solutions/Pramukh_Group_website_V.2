@@ -1,0 +1,283 @@
+.portfolio {
+  position: relative;
+  z-index: 2;
+  padding-block: var(--section-y);
+  background: var(--c-ivory);
+}
+
+.head {
+  display: grid;
+  grid-template-columns: 5fr 7fr;
+  grid-template-areas:
+    "eyebrow eyebrow"
+    "title aside";
+  gap: 1.5rem clamp(2.5rem, 6vw, 6rem);
+  align-items: end;
+  padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  border-bottom: 1px solid var(--c-line);
+}
+.eyebrow {
+  grid-area: eyebrow;
+  color: var(--c-ink-muted);
+}
+.title {
+  grid-area: title;
+  font-size: var(--t-display-l);
+  max-width: 14ch;
+}
+.headAside {
+  grid-area: aside;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  color: var(--c-ink-muted);
+  max-width: 40rem;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.filter {
+  padding: 0.65rem 1.05rem;
+  border-radius: 999px;
+  border: 1px solid var(--c-line);
+  font-size: var(--t-small);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+.filter sup {
+  margin-left: 0.3em;
+  font-size: 0.65em;
+  color: var(--c-ink-faint);
+}
+.filter:hover {
+  border-color: var(--c-espresso);
+}
+.filter[aria-pressed="true"] {
+  background: var(--c-espresso);
+  border-color: var(--c-espresso);
+  color: var(--c-on-dark);
+}
+.filter[aria-pressed="true"] sup {
+  color: var(--c-tan);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 5fr 7fr;
+  gap: clamp(2.5rem, 6vw, 6rem);
+  padding-top: clamp(2rem, 4vw, 3.5rem);
+}
+.previewCol {
+  position: relative;
+}
+.preview {
+  position: sticky;
+  top: calc(var(--nav-h) + 24px);
+  aspect-ratio: 4 / 5;
+  max-height: calc(100svh - var(--nav-h) - 60px);
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--c-sand);
+}
+.previewItem {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.previewItem[data-layer="prev"] {
+  z-index: 1;
+}
+.previewItem[data-layer="top"] {
+  z-index: 2;
+}
+.previewCaption {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 3rem 1.25rem 1.1rem;
+  background: linear-gradient(180deg, transparent, rgb(27 21 16 / 0.62));
+  color: var(--c-on-dark);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+}
+.previewStatus {
+  color: var(--c-tan);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+.row {
+  border-bottom: 1px solid var(--c-line);
+}
+.rowLink {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr) minmax(0, 1.1fr) auto;
+  grid-template-areas: "name city config arrow" "name status config arrow";
+  align-items: center;
+  column-gap: 1.5rem;
+  padding-block: clamp(1.1rem, 1.8vw, 1.6rem);
+}
+.rowLink::before {
+  content: "";
+  position: absolute;
+  inset: 0 -1rem;
+  border-radius: var(--radius-sm);
+  background: var(--c-cream);
+  opacity: 0;
+  transform: scaleY(0.6);
+  transition:
+    opacity var(--dur) var(--ease-out),
+    transform var(--dur) var(--ease-out);
+  z-index: -1;
+}
+.row[data-active="true"] .rowLink::before {
+  opacity: 0.7;
+  transform: none;
+}
+.thumb {
+  display: none;
+}
+.rowName {
+  grid-area: name;
+  font-family: var(--f-display);
+  font-size: var(--t-display-m);
+  line-height: 1.05;
+  text-transform: uppercase;
+  transition: transform var(--dur) var(--ease-out);
+}
+.row[data-active="true"] .rowName {
+  transform: translateX(0.6rem);
+}
+.rowCity {
+  grid-area: city;
+  font-size: var(--t-small);
+  font-weight: 500;
+}
+.rowCity em {
+  font-style: normal;
+  color: var(--c-ink-muted);
+  font-weight: 400;
+}
+.rowStatus {
+  grid-area: status;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+}
+.rowConfig {
+  grid-area: config;
+  font-size: var(--t-small);
+  color: var(--c-ink-muted);
+}
+.rowArrow {
+  grid-area: arrow;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  border: 1px solid var(--c-line);
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+.row[data-active="true"] .rowArrow {
+  background: var(--c-espresso);
+  border-color: var(--c-espresso);
+  color: var(--c-on-dark);
+}
+
+.foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 2.5rem;
+}
+
+/* Tablet + mobile: a swipeable rail of image cards replaces the hover preview. */
+@media (max-width: 1023.98px) {
+  .head {
+    grid-template-columns: 1fr;
+    grid-template-areas: "eyebrow" "title" "aside";
+  }
+  .body {
+    display: block;
+    padding-top: 2rem;
+  }
+  .previewCol {
+    display: none;
+  }
+  .rows {
+    flex-direction: row;
+    gap: 0.9rem;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .rows::-webkit-scrollbar {
+    display: none;
+  }
+  .row {
+    flex: 0 0 min(78vw, 360px);
+    scroll-snap-align: start;
+    border-bottom: 0;
+  }
+  .rowLink {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "thumb thumb" "name arrow" "city arrow" "config config" "status status";
+    row-gap: 0.35rem;
+    padding: 0 0 0.5rem;
+  }
+  .rowLink::before {
+    display: none;
+  }
+  .thumb {
+    display: block;
+    grid-area: thumb;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    margin-bottom: 0.9rem;
+  }
+  .row[data-active="true"] .rowName {
+    transform: none;
+  }
+  .row[data-active="true"] .rowArrow {
+    background: transparent;
+    border-color: var(--c-line);
+    color: inherit;
+  }
+  .foot {
+    justify-content: flex-start;
+  }
+}
+
+/* The preview photo opens the project it shows (the "View" cursor appears over it). */
+.previewLink {
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* above the photos (same level, later in the DOM), below the caption */
+}

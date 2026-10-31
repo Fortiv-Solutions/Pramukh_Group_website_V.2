@@ -1,0 +1,175 @@
+.build {
+  position: relative;
+  z-index: 2;
+  background: var(--c-ivory);
+  padding-top: clamp(4rem, 8vw, 7rem);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+  text-align: center;
+}
+.eyebrow {
+  color: var(--c-ink-muted);
+}
+.title {
+  font-size: var(--t-display-l);
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+.stage {
+  position: relative;
+  height: 100svh;
+  min-height: 640px;
+  overflow: hidden;
+  background: var(--c-espresso-deep);
+  color: var(--c-ink);
+}
+.slideWrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.slideWrap .card {
+  pointer-events: auto;
+}
+
+/* Louvre mask: --louvre runs 0% → 100% inside each of 12 horizontal tiles. */
+.bg {
+  --louvre: 100%;
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 var(--louvre), transparent var(--louvre));
+  mask-image: linear-gradient(to bottom, #000 var(--louvre), transparent var(--louvre));
+  /* Tiles overlap by a pixel and the reveal overshoots to 104%, so a fully open slide has no seams
+     without ever removing the mask (removing it broke the slides when scrolling back up). */
+  -webkit-mask-size: 100% calc(100% / 12 + 1px);
+  mask-size: 100% calc(100% / 12 + 1px);
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+}
+.bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(27 21 16 / 0.18), rgb(27 21 16 / 0.32));
+}
+.bg img {
+  will-change: transform;
+}
+
+.card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+  width: min(440px, calc(100vw - 2 * var(--gutter)));
+  padding: 1.6rem 1.6rem 1.9rem;
+  background: var(--c-sand);
+  border-radius: 4px;
+  text-align: center;
+  box-shadow: 0 40px 80px -40px rgb(27 21 16 / 0.6);
+}
+.count {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  color: rgb(28 23 18 / 0.82);
+}
+.count span {
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+}
+.cardTitle {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: var(--t-display-m);
+  line-height: 1.1;
+}
+.inset {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 2px;
+}
+.cardBody {
+  font-size: var(--t-small);
+  color: rgb(28 23 18 / 0.75);
+  max-width: 34ch;
+  text-wrap: pretty;
+}
+
+.side {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--c-on-dark);
+  font-size: var(--t-lead);
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+.sideLeft {
+  left: var(--gutter);
+}
+.sideRight {
+  right: var(--gutter);
+}
+
+/* Reduced motion: no pinning, so the slides stack into a plain sequence. */
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    height: auto;
+    min-height: 0;
+  }
+  .slideWrap {
+    position: relative;
+    min-height: 92svh;
+    padding: 5rem var(--gutter);
+  }
+}
+
+/* Below desktop the pinned stage keeps its layers; the side labels would collide with the card. */
+@media (max-width: 1023.98px) {
+  .side {
+    display: none;
+  }
+  .stage {
+    min-height: 560px;
+  }
+}
+@media (max-width: 639.98px) {
+  .card {
+    gap: 0.9rem;
+    padding: 1.15rem 1.15rem 1.35rem;
+  }
+  .inset {
+    aspect-ratio: 2 / 1;
+  }
+}
+/* Short phones: the card is a title, text and button; the photo gives way so everything stays on screen. */
+@media (max-width: 639.98px) and (max-height: 700px) {
+  .inset {
+    display: none;
+  }
+}
+@media (max-width: 639.98px) and (prefers-reduced-motion: reduce) {
+  .slideWrap {
+    min-height: 0;
+    padding: 4.5rem var(--gutter);
+  }
+  .inset {
+    display: block;
+  }
+}

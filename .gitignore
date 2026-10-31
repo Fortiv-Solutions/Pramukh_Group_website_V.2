@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+.media-cache
+
+# Source assets and undo checkpoints
+assets/
+_undo/
+e532c0db3ec3e37713db72dcb692d22a.mp4
+
+# Environment files
+.env*.local
+.env

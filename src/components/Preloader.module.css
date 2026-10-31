@@ -1,0 +1,111 @@
+/* Entrance runs in CSS from first paint, before hydration. Base styles are the final (visible) state and
+   keyframes use fill-mode `backwards`, so once data-phase="exit" removes them GSAP takes over cleanly. */
+.preloader {
+  --pl-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  /* The brief's light ground (#F4F6F8) with the faint warm glow at the right edge from its sample. */
+  background:
+    radial-gradient(60% 75% at 104% 58%, rgb(236 229 214 / 0.9) 0%, rgb(240 238 232 / 0.45) 45%, transparent 75%),
+    #f4f6f8;
+  color: var(--c-ink);
+  will-change: transform;
+  /* Never leave the page covered if scripts stall. */
+  animation: pl-failsafe 0s 9s forwards;
+}
+:global(.js) .preloader {
+  display: block;
+}
+@media (prefers-reduced-motion: reduce) {
+  :global(.js) .preloader {
+    display: none;
+  }
+}
+@keyframes pl-failsafe {
+  to {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.logo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.logoSvg {
+  /* Original artwork colours: gold monogram and tagline, grey wordmark. */
+  --logo-word: #434242;
+  width: clamp(140px, 12vw, 190px);
+  height: auto;
+  overflow: visible;
+}
+.logoSvg :global(path) {
+  transform-box: fill-box;
+}
+.logoSvg :global([data-logo="mark"]) {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pl-mark 1.4s var(--pl-ease) 0.15s backwards;
+}
+.logoSvg :global([data-logo="word"] path) {
+  animation: pl-rise 1.1s var(--pl-ease) backwards;
+}
+.logoSvg :global([data-logo="tagline"] path) {
+  animation: pl-rise-soft 0.9s var(--pl-ease) backwards;
+}
+.logoSvg :global([data-logo="word"] path:nth-child(1)) { animation-delay: 0.55s; }
+.logoSvg :global([data-logo="word"] path:nth-child(2)) { animation-delay: 0.62s; }
+.logoSvg :global([data-logo="word"] path:nth-child(3)) { animation-delay: 0.69s; }
+.logoSvg :global([data-logo="word"] path:nth-child(4)) { animation-delay: 0.76s; }
+.logoSvg :global([data-logo="word"] path:nth-child(5)) { animation-delay: 0.83s; }
+.logoSvg :global([data-logo="word"] path:nth-child(6)) { animation-delay: 0.90s; }
+.logoSvg :global([data-logo="word"] path:nth-child(7)) { animation-delay: 0.97s; }
+.logoSvg :global([data-logo="word"] path:nth-child(8)) { animation-delay: 1.04s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(1)) { animation-delay: 1.150s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(2)) { animation-delay: 1.182s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(3)) { animation-delay: 1.214s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(4)) { animation-delay: 1.246s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(5)) { animation-delay: 1.278s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(6)) { animation-delay: 1.310s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(7)) { animation-delay: 1.342s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(8)) { animation-delay: 1.374s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(9)) { animation-delay: 1.406s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(10)) { animation-delay: 1.438s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(11)) { animation-delay: 1.470s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(12)) { animation-delay: 1.502s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(13)) { animation-delay: 1.534s; }
+.logoSvg :global([data-logo="tagline"] path:nth-child(14)) { animation-delay: 1.566s; }
+
+@keyframes pl-mark {
+  from {
+    opacity: 0;
+    transform: translateY(16%) scale(0.92);
+  }
+}
+/* Offsets are in logo units (one full row height), so small glyphs like ® clear the mask too. */
+@keyframes pl-rise {
+  from {
+    transform: translateY(170px);
+  }
+}
+@keyframes pl-rise-soft {
+  from {
+    opacity: 0;
+    transform: translateY(95px);
+  }
+}
+.preloader[data-phase="exit"],
+.preloader[data-phase="exit"] * {
+  animation: none !important;
+}
+
+@media (max-width: 639.98px) {
+  .logoSvg {
+    width: 120px;
+  }
+}
