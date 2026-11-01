@@ -8,6 +8,7 @@ const listeners = new Set<() => void>();
 export function markIntroDone() {
   if (done) return;
   done = true;
+  document.documentElement.classList.add("intro-done");
   listeners.forEach((fn) => fn());
   listeners.clear();
 }

@@ -89,6 +89,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Taps respond at once and a quick double tap on a control does not zoom the page; pinch zoom stays. */
+  touch-action: manipulation;
 }
 html.lenis,
 html.lenis body {
@@ -103,6 +105,12 @@ html.lenis body {
 body {
   margin: 0;
   background: var(--c-ivory);
+  transition: background-color 0.4s ease;
+}
+html.js:not(.intro-done) body {
+  background: #f4f6f8;
+}
+body {
   color: var(--c-ink);
   font-family: var(--f-body);
   font-size: var(--t-body);

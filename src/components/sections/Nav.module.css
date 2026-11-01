@@ -163,6 +163,18 @@
   .nav[data-solid="true"] .toggle:hover {
     background: rgb(28 23 18 / 0.11);
   }
+  /* Over the hero: a frosted outlined pill, legible over light water as well as dark foliage. */
+  .nav[data-solid="false"] .toggle {
+    padding: 0.62rem 1.15rem 0.62rem 1rem;
+    border: 1px solid rgb(246 239 228 / 0.45);
+    border-radius: 999px;
+    background: rgb(18 14 10 / 0.24);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+  .nav[data-solid="false"] .toggle:hover {
+    background: rgb(18 14 10 / 0.36);
+  }
   .nav[data-solid="true"] .toggleLabel {
     display: none;
   }
@@ -191,7 +203,7 @@
    the bright river and lawns behind it). */
 .nav[data-solid="false"] .logoSvg {
   height: 68px;
-  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.55)) drop-shadow(0 2px 16px rgb(0 0 0 / 0.45));
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.65)) drop-shadow(0 2px 18px rgb(0 0 0 / 0.6));
 }
 .nav[data-solid="true"] .logoSvg {
   height: 50px;
@@ -215,7 +227,10 @@
 /* Enquire (shared Button, tone="nav"): outline over the hero; the gold accent on the pill. */
 .cta {
   justify-self: end;
-  --btn-border: rgb(246 239 228 / 0.5);
+  --btn-bg: rgb(18 14 10 / 0.26);
+  --btn-border: rgb(246 239 228 / 0.6);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   --btn-fg: var(--c-on-dark);
   --btn-fill: var(--c-ivory);
   --btn-fill-fg: var(--c-ink);
@@ -347,28 +362,54 @@
   letter-spacing: 0.02em;
   line-height: 1.2;
 }
+/* Even, round touch targets whose outer edge lines up with the city names above. */
 .socials {
   display: flex;
-  gap: 1.4rem;
-  margin-top: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.4rem;
   color: var(--c-ink-muted);
 }
 .socials a {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--c-line);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.55);
   transition:
-    color 0.25s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    background-color 0.3s ease,
     transform 0.4s var(--ease-out);
 }
-.socials a:hover {
+.socials a svg {
+  width: 17px;
+  height: 17px;
+}
+.socials a:hover,
+.socials a:focus-visible {
   color: var(--c-ink);
+  border-color: var(--c-gold);
+  background: #fff;
   transform: translateY(-2px);
 }
 
 /* Tablet and below: no hover step; the pill spans the width and the panel stacks. */
 @media (max-width: 1023.98px) {
+  /* The middle column is narrow here: four slightly smaller circles keep to one row. */
+  .socials {
+    gap: 0.4rem;
+  }
+  .socials a {
+    width: 34px;
+    height: 34px;
+  }
+  .socials a svg {
+    width: 15px;
+    height: 15px;
+  }
   .nav[data-solid="true"][data-wide="false"] .shell {
     max-width: var(--shell-full);
   }
@@ -385,6 +426,18 @@
   }
   .link {
     padding: 0.8rem 0;
+  }
+  /* Full-width column on phones: back to full-size touch targets. */
+  .socials {
+    gap: 0.6rem;
+  }
+  .socials a {
+    width: 42px;
+    height: 42px;
+  }
+  .socials a svg {
+    width: 17px;
+    height: 17px;
   }
 }
 /* Phones: a symmetrical bar built around the full logo (monogram, PRAMUKH, A CLASS OF ITS OWN) at 56px.
@@ -415,6 +468,11 @@
   .nav[data-solid="true"] .toggle {
     border-color: transparent;
     background: rgb(28 23 18 / 0.06);
+  }
+  .nav[data-solid="false"] .toggle {
+    background: rgb(18 14 10 / 0.24);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
   }
   .toggleLabel {
     display: none;

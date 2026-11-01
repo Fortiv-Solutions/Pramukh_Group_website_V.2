@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/Button";
 import { SplitReveal } from "@/components/ui/SplitReveal";
 import { useScroll } from "@/components/SmoothScroll";
 import { gsap, useGSAP, MQ } from "@/lib/gsap";
-import { builtBy, nav, officialLinks, offices, socials, telHref } from "@/content/site";
+import { builtBy, nav, officialLinks, offices, socials, telHref, whatsappHref } from "@/content/site";
 import styles from "./Footer.module.css";
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
 /**
- * Closing section after the fromanother footer: a statement and call to action on the left, the
- * offices as a grid on the right, one quiet base row. Behind it, the Pramukh monogram as a watermark:
- * a soft blurred glow plus a fine gold outline that draws itself in.
+ * The closing: a statement with its two invitations and a "speak with us" card; the three offices as a
+ * numbered directory with the social links; and one quiet base row. Behind it all, the monogram watermark (a soft glow and a fine gold outline).
  */
 export function Footer() {
   const root = useRef<HTMLElement>(null);
@@ -27,15 +28,21 @@ export function Footer() {
         gsap.fromTo("[data-foot-glow]", { autoAlpha: 0, scale: 0.85 }, { autoAlpha: 1, scale: 1, duration: 2.4, ease: "expo.out", scrollTrigger: enter });
         gsap.fromTo("[data-watermark-stroke]", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 2.8, ease: "power2.inOut", scrollTrigger: enter });
         gsap.fromTo("[data-watermark-fill]", { opacity: 0 }, { opacity: 0.05, duration: 1.4, delay: 1.6, scrollTrigger: enter });
+        gsap.from("[data-speak]", {
+          y: 40,
+          opacity: 0,
+          duration: 1.3,
+          ease: "expo.out",
+          scrollTrigger: { trigger: "[data-speak]", start: "top 88%", toggleActions: "play none none none" },
+        });
         gsap.from("[data-office]", {
           y: 36,
-          autoAlpha: 0,
+          opacity: 0,
           duration: 1.2,
           stagger: 0.1,
           ease: "expo.out",
-          scrollTrigger: { trigger: "[data-offices]", start: "top 85%", toggleActions: "play none none none" },
+          scrollTrigger: { trigger: "[data-offices]", start: "top 88%", toggleActions: "play none none none" },
         });
-        // The watermark drifts slower than the page: a hint of depth.
         gsap.fromTo(
           "[data-foot-mark]",
           { yPercent: 8 },
@@ -49,6 +56,7 @@ export function Footer() {
 
   const year = new Date().getFullYear();
   const [x, y, w, h] = logoPaths.mark.box;
+  const main = offices[0];
 
   return (
     <footer ref={root} id="contact" data-nav-theme="dark" className={styles.footer} aria-labelledby="contact-title">
@@ -62,25 +70,62 @@ export function Footer() {
         <MonogramWatermark className={styles.outline} />
       </div>
 
-      <div className={`container ${styles.main}`}>
+      {/* Invitation */}
+      <div className={`container ${styles.cta}`}>
         <div className={styles.lead}>
+          <p className={styles.eyebrow} data-reveal>
+            <span className={styles.dot} aria-hidden="true" />
+            Contact
+          </p>
           <SplitReveal as="h2" id="contact-title" className={`display ${styles.title}`}>
             Let&rsquo;s build something that <span className={styles.accent}>lasts.</span>
           </SplitReveal>
           <p className={styles.lede} data-reveal>
             Discover the Pramukh approach to creating spaces that stand the test of time.
           </p>
-          <div data-reveal>
-            <Button href={officialLinks.contact} tone="light" external>
+          <div className={styles.actions} data-reveal>
+            <Button
+              href="#enquire"
+              tone="light"
+              onClick={(e) => {
+                e.preventDefault();
+                scroll.scrollTo("#enquire");
+              }}
+            >
+              Schedule a private visit
+            </Button>
+            <Button href={officialLinks.contact} tone="outline-light" external>
               Start a conversation
             </Button>
           </div>
         </div>
 
+        <aside className={styles.speakShell} data-speak aria-label="Speak with us">
+          <div className={styles.speak}>
+            <p className={styles.speakLabel}>Speak with us</p>
+            <a href={telHref(main.phone)} className={`display ${styles.speakPhone}`}>
+              {main.phone}
+            </a>
+            <p className={styles.speakNote}>{main.city} office</p>
+            <div className={styles.speakLinks}>
+              <a href={whatsappHref()} target="_blank" rel="noopener noreferrer" className={styles.pill}>
+                WhatsApp
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>
+              <a href={`mailto:${main.email}`} className={styles.pill}>
+                {main.email}
+              </a>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {/* Directory */}
+      <div className={`container ${styles.directory}`}>
         <ul className={styles.offices} data-offices aria-label="Pramukh offices">
-          {offices.map((o) => (
+          {offices.map((o, i) => (
             <li key={o.city} className={styles.office} data-office>
-              <OfficeMark />
+              <span className={styles.officeIndex}>{pad(i + 1)}</span>
               <h3 className={`display ${styles.city}`}>{o.city}</h3>
               <address className={styles.addr}>
                 {o.lines.map((l) => (
@@ -96,13 +141,16 @@ export function Footer() {
             </li>
           ))}
           <li className={styles.office} data-office>
-            <OfficeMark />
+            <span className={styles.officeIndex}>{pad(offices.length + 1)}</span>
             <h3 className={`display ${styles.city}`}>Follow</h3>
             <ul className={styles.socials}>
               {socials.map((s) => (
                 <li key={s.label}>
                   <a href={s.href} target="_blank" rel="noopener noreferrer">
                     {s.label}
+                    <svg viewBox="0 0 20 20" aria-hidden="true">
+                      <path d="M6 14 14 6M7.5 6H14v6.5" />
+                    </svg>
                     <span className="sr-only"> (opens in a new tab)</span>
                   </a>
                 </li>
@@ -147,15 +195,5 @@ export function Footer() {
         </p>
       </div>
     </footer>
-  );
-}
-
-/** A fine location pin marking each office, after the reference's location marks. */
-function OfficeMark() {
-  return (
-    <svg className={styles.officeMark} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 21.5s-6.5-6.1-6.5-11.2a6.5 6.5 0 0 1 13 0c0 5.1-6.5 11.2-6.5 11.2z" />
-      <circle cx="12" cy="10.2" r="2.2" />
-    </svg>
   );
 }

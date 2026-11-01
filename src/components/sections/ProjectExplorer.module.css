@@ -1,0 +1,1230 @@
+/* Projects as a shelf of city volumes that open into a book (see ProjectExplorer.tsx).
+   Cover typography is set in container units so the shelf copy and the book's cover are identical at any
+   size; it is a printed object, outside the page's type scale. */
+.explorer {
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --paper: #faf5ec;
+  --paper-edge: #e6dccb;
+  position: relative;
+  z-index: 2;
+  padding-block: var(--section-y);
+  background: radial-gradient(120% 70% at 50% 0%, #fffdf8 0%, var(--c-ivory) 55%, #f6eee2 100%);
+}
+
+/* ---------- Heading ---------- */
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1.1rem, 2vw, 1.5rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  text-align: center;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.55);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-gold);
+}
+.title {
+  font-size: var(--t-display-l);
+  max-width: 16ch;
+  text-wrap: balance;
+}
+.lede {
+  max-width: 40ch;
+  color: var(--c-ink-muted);
+  text-wrap: pretty;
+}
+
+/* ---------- Stage: shelf and reader share one box, so opening a volume never shifts the page ---------- */
+.stage {
+  /* Book page: limited by height, by half the width, and a ceiling; 1 : 1.36 like the covers. */
+  --bw: min(calc(clamp(380px, 66svh, 700px) / 1.36), calc((100vw - 2 * var(--gutter)) / 2 - 14px), 560px);
+  --bh: calc(var(--bw) * 1.36);
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* Room for the open book with its bar above and pager below. */
+  min-height: calc(var(--bh) + 9rem);
+}
+
+/* ---------- Shelf ---------- */
+.shelfWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.shelf {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(1rem, 2.4vw, 2.25rem);
+  width: 100%;
+}
+.slot {
+  flex: 0 1 clamp(14rem, 17vw, 24rem);
+  min-width: 0;
+}
+.cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.36;
+  border-radius: 4px;
+}
+.cover:focus-visible {
+  outline: 2px solid var(--c-gold);
+  outline-offset: 8px;
+}
+.tilt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.ledge {
+  position: relative;
+  width: min(100%, 84rem);
+  height: 20px;
+  margin-top: -2px;
+  border-radius: 2px 2px 4px 4px;
+  /* top surface (lit) over a walnut front face */
+  background:
+    linear-gradient(180deg, #e9dcc5 0%, #d9c7a7 30%, transparent 30.5%),
+    linear-gradient(180deg, #9c8059 30%, #7d6345 75%, #6b5339 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.65),
+    inset 0 -1px 0 rgb(0 0 0 / 0.18),
+    0 28px 34px -18px rgb(51 40 32 / 0.6),
+    0 6px 10px -6px rgb(51 40 32 / 0.5);
+}
+/* The books' shadow on the wall just above the plank. */
+.ledge::before {
+  content: "";
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 100%;
+  height: 46px;
+  background: radial-gradient(60% 100% at 50% 100%, rgb(51 40 32 / 0.16), transparent 75%);
+  pointer-events: none;
+}
+.hintTouch {
+  display: none;
+}
+.hint {
+  margin-top: 1.6rem;
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--c-ink-faint);
+}
+
+/* ---------- The printed cover ---------- */
+.face {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  container-type: inline-size;
+  border-radius: 3px 5px 5px 3px;
+  background: #2a211a;
+  color: var(--c-ivory);
+  text-align: left;
+  /* A hint of the page block along the fore-edge, then the book's shadow on the shelf. */
+  box-shadow:
+    2px 0 0 -0.5px #f4ede1,
+    4px 1px 0 -1px #ddd1bd,
+    5px 2px 0 -1px #f4ede1,
+    0 28px 40px -22px rgb(27 21 16 / 0.6),
+    0 4px 10px -4px rgb(27 21 16 / 0.3);
+}
+.face img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s var(--ease);
+}
+.shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(18 14 10 / 0.55) 0%,
+    rgb(18 14 10 / 0) 26%,
+    rgb(18 14 10 / 0) 46%,
+    rgb(18 14 10 / 0.8) 100%
+  );
+}
+/* A fine foil frame, as if stamped. */
+.foil {
+  position: absolute;
+  inset: 4.5cqw 4.5cqw 4.5cqw 8cqw;
+  border: 1px solid rgb(214 189 128 / 0.5);
+}
+/* Binding: shading and a highlight along the spine. */
+.spine {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 7cqw;
+  background: linear-gradient(
+    90deg,
+    rgb(0 0 0 / 0.45) 0%,
+    rgb(255 255 255 / 0.2) 30%,
+    rgb(0 0 0 / 0.2) 50%,
+    rgb(0 0 0 / 0) 100%
+  );
+}
+.faceTop {
+  position: absolute;
+  top: 9cqw;
+  left: 12cqw;
+  right: 9cqw;
+  display: flex;
+  justify-content: flex-start;
+  font-size: max(8.5px, 3.3cqw);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(246 239 228 / 0.86);
+}
+.faceLogo {
+  --logo-word: var(--c-ivory);
+  width: 30cqw;
+  height: auto;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.5)) drop-shadow(0 4px 14px rgb(0 0 0 / 0.35));
+}
+.faceVol {
+  font-size: max(8.5px, 3.1cqw);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(246 239 228 / 0.8);
+}
+.faceFoot {
+  position: absolute;
+  left: 12cqw;
+  right: 9cqw;
+  bottom: 10cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3.4cqw;
+}
+.faceCity {
+  font-size: 12.5cqw;
+  line-height: 0.95;
+}
+.faceRule {
+  width: 14cqw;
+  height: 1px;
+  background: var(--c-gold);
+}
+.faceCount {
+  font-size: max(8.5px, 3.3cqw);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-tan);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cover:hover .face img {
+    transform: scale(1.05);
+  }
+}
+
+/* ---------- Reader: the open volume ---------- */
+.reader {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  perspective: 2400px;
+}
+.readerBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: min(100%, calc(2 * var(--bw)));
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  padding: 0 1.1rem 0 0.9rem;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.6);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition:
+    background-color 0.45s var(--ease),
+    color 0.45s var(--ease),
+    border-color 0.45s var(--ease);
+}
+.back:hover,
+.back:focus-visible {
+  border-color: var(--c-espresso);
+  background: var(--c-espresso);
+  color: var(--c-ivory);
+}
+.switcher {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.2rem;
+}
+.switcher button {
+  min-height: 2.75rem;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+  transition:
+    background-color 0.4s var(--ease),
+    color 0.4s var(--ease);
+}
+.switcher button:hover {
+  color: var(--c-ink);
+}
+.switcher button[aria-current="true"] {
+  background: rgb(51 40 32 / 0.07);
+  color: var(--c-ink);
+}
+
+.bookTilt {
+  transform-style: preserve-3d;
+}
+.book {
+  position: relative;
+  width: calc(2 * var(--bw));
+  height: var(--bh);
+  transform-style: preserve-3d;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+/* Right-hand page */
+.page {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+  padding: clamp(1.25rem, 2.5vw, 2.1rem) clamp(1.25rem, 2.5vw, 2.1rem) clamp(1rem, 2vw, 1.6rem) clamp(1.6rem, 3vw, 2.6rem);
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, #e3d8c4 0%, #f3ebdf 6%, var(--paper) 16%, var(--paper) 100%);
+  box-shadow:
+    1px 1px 0 var(--paper-edge),
+    2px 2px 0 #f6efe4,
+    3px 3px 0 var(--paper-edge),
+    4px 4px 0 #f6efe4,
+    0 44px 70px -36px rgb(27 21 16 / 0.55);
+}
+.pageHeadSingle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-bottom: 1rem;
+}
+.singleCity {
+  outline: none;
+  font-size: calc(var(--t-display-m) * 1.2);
+  line-height: 1;
+}
+.contentsLabel {
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--c-line);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+}
+.contents {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.contents::-webkit-scrollbar {
+  display: none;
+}
+.contents:has(> li:nth-child(4)) > li {
+  flex: 1 1 0;
+}
+.contents > li {
+  flex: 0 0 auto;
+  display: flex;
+  min-height: 3.3rem;
+  max-height: 7rem;
+  border-bottom: 1px solid var(--c-line);
+}
+.entry {
+  flex: 1;
+  width: 100%;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 1.5rem 4.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.5rem 0.4rem;
+  transition: background-color 0.5s var(--ease);
+}
+.entry[data-active],
+.entry:focus-visible {
+  background: rgb(196 163 89 / 0.1);
+}
+.entryNum {
+  font-family: var(--f-display);
+  font-size: var(--t-small);
+  color: var(--c-gold);
+}
+.thumb {
+  width: 4.5rem;
+  aspect-ratio: 4 / 3;
+  border-radius: 2px;
+}
+.thumb img,
+.plateImg img {
+  object-fit: cover;
+}
+.entryText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.entryName {
+  font-size: var(--t-lead);
+  line-height: 1.1;
+}
+.entryMeta {
+  overflow: hidden;
+  font-size: var(--t-small);
+  color: var(--c-ink-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.entryStatus {
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9a7b35;
+}
+.explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+  transition: color 0.4s var(--ease);
+}
+.explore svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.5s var(--ease);
+}
+.entry:hover .explore,
+.entry:focus-visible .explore {
+  color: var(--c-ink);
+}
+.entry:hover .explore svg,
+.entry:focus-visible .explore svg {
+  transform: translate(2px, -2px);
+}
+/* Narrow pages: drop the numbering and let the arrow stand for "Explore". */
+@container (max-width: 360px) {
+  .entry {
+    grid-template-columns: 4rem minmax(0, 1fr) auto;
+    gap: 0.75rem;
+  }
+  .entryNum {
+    display: none;
+  }
+  .thumb {
+    width: 4rem;
+  }
+  .explore {
+    font-size: 0;
+    gap: 0;
+  }
+}
+
+/* Short volumes: the highlighted project's own description sits at the foot of the page. */
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
+}
+.noteHead {
+  font-family: var(--f-display);
+  font-size: var(--t-lead);
+  line-height: 1.2;
+}
+.noteBody {
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--c-ink-muted);
+  text-wrap: pretty;
+}
+
+/* The contents block fills the right-hand page; a project's details lie over it. */
+.contentsBlock {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Page skins: right-hand pages have their gutter on the left, left-hand pages on the right ---------- */
+.leftPage,
+.turner[data-dir="next"] .turnBack,
+.turner[data-dir="prev"] .turnFace:not(.turnBack) {
+  padding: clamp(1.25rem, 2.5vw, 2.1rem) clamp(1.6rem, 3vw, 2.6rem) clamp(1rem, 2vw, 1.6rem) clamp(1.25rem, 2.5vw, 2.1rem);
+  border-radius: 4px 0 0 4px;
+  background: linear-gradient(270deg, #e3d8c4 0%, #f3ebdf 6%, var(--paper) 16%, var(--paper) 100%);
+}
+.detailLayer,
+.turner[data-dir="next"] .turnFace:not(.turnBack),
+.turner[data-dir="prev"] .turnBack {
+  padding: clamp(1.25rem, 2.5vw, 2.1rem) clamp(1.25rem, 2.5vw, 2.1rem) clamp(1rem, 2vw, 1.6rem) clamp(1.6rem, 3vw, 2.6rem);
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, #e3d8c4 0%, #f3ebdf 6%, var(--paper) 16%, var(--paper) 100%);
+}
+
+/* A project spread: the plate on the left, laid over the inside cover */
+.leftPage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 50%;
+  height: 100%;
+}
+.platePage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+}
+.platePageImg {
+  flex: 1;
+  min-height: 0;
+  border-radius: 2px;
+}
+.platePageImg img {
+  object-fit: cover;
+}
+
+/* …and its details on the right */
+.detailLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  container-type: inline-size;
+}
+.detail {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.detailPhoto {
+  display: none;
+}
+.detailName {
+  margin-top: 0.4rem;
+  font-size: var(--t-display-l);
+  line-height: 0.98;
+}
+.detailWhere {
+  font-size: var(--t-small);
+  letter-spacing: 0.04em;
+  color: var(--c-ink-muted);
+}
+.detailHeadline {
+  margin-top: 0.6rem;
+  font-family: var(--f-display);
+  font-size: var(--t-lead);
+  line-height: 1.25;
+}
+.detailBody {
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--c-ink-muted);
+  text-wrap: pretty;
+}
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem 1.25rem;
+  width: 100%;
+  margin-top: 0.6rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--c-line);
+}
+.facts div:nth-child(2) {
+  grid-column: 1 / -1;
+  order: 3;
+}
+.facts dt {
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--c-ink-faint);
+}
+.facts dd {
+  margin: 0.15rem 0 0;
+  font-size: var(--t-small);
+}
+.detailCta {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+/* ---------- The leaf being turned ---------- */
+.turner {
+  position: absolute;
+  top: 0;
+  z-index: 5;
+  width: 50%;
+  height: 100%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.turner[data-dir="next"] {
+  left: 50%;
+  transform-origin: 0% 50%;
+}
+.turner[data-dir="prev"] {
+  left: 0;
+  transform-origin: 100% 50%;
+}
+.turnFace {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  overflow: hidden;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.turnBack {
+  transform: rotateY(180deg);
+}
+.turnFace > .detail,
+.turnFace > .platePage,
+.turnContents {
+  flex: 1;
+  min-height: 0;
+}
+.turnContents {
+  display: flex;
+  flex-direction: column;
+}
+/* Shading: the turning leaf darkens as it stands upright and clears as it lies down. */
+.turnShade {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(90deg, rgb(27 21 16 / 0.55), rgb(27 21 16 / 0.2));
+  pointer-events: none;
+}
+
+/* ---------- Pager ---------- */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.pager button {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--c-line);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.6);
+  transition:
+    background-color 0.45s var(--ease),
+    color 0.45s var(--ease),
+    border-color 0.45s var(--ease),
+    opacity 0.3s ease;
+}
+.pager button:hover:not(:disabled),
+.pager button:focus-visible {
+  border-color: var(--c-espresso);
+  background: var(--c-espresso);
+  color: var(--c-ivory);
+}
+.pager button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.pager button svg {
+  width: 15px;
+  height: 15px;
+}
+.folio {
+  min-width: 15rem;
+  text-align: center;
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.folio span {
+  color: var(--c-ink-faint);
+}
+
+/* The cover leaf, hinged on the spine */
+.leaf {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 2;
+  width: 50%;
+  height: 100%;
+  transform-origin: 0% 50%;
+  transform-style: preserve-3d;
+}
+.leafFront,
+.leafBack {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.leafFront .face {
+  border-radius: 2px 5px 5px 2px;
+}
+/* Inside of the cover: the left-hand page of the spread. */
+.leafBack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: clamp(1.25rem, 2.5vw, 2.1rem) clamp(1.6rem, 3vw, 2.6rem) clamp(1rem, 2vw, 1.6rem) clamp(1.25rem, 2.5vw, 2.1rem);
+  border-radius: 4px 0 0 4px;
+  background: linear-gradient(270deg, #e3d8c4 0%, #f3ebdf 6%, var(--paper) 16%, var(--paper) 100%);
+  transform: rotateY(180deg);
+  box-shadow:
+    -1px 1px 0 var(--paper-edge),
+    -2px 2px 0 #f6efe4,
+    -3px 3px 0 var(--paper-edge),
+    -4px 4px 0 #f6efe4,
+    0 44px 70px -36px rgb(27 21 16 / 0.55);
+}
+.label {
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+}
+.journeyMark {
+  width: 2.6rem;
+  margin-bottom: 0.6rem;
+  fill: var(--c-gold);
+}
+.journeyTitle {
+  margin-bottom: 0.4rem;
+  font-size: var(--t-display-l);
+  line-height: 0.98;
+}
+.journeyBody {
+  font-size: var(--t-small);
+  line-height: 1.7;
+  color: var(--c-ink-muted);
+  text-wrap: pretty;
+}
+.journeySign {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--c-line);
+  font-family: var(--f-display);
+  font-size: var(--t-lead);
+}
+.journeySign span {
+  font-family: var(--f-body);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #9a7b35;
+}
+.count {
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #9a7b35;
+}
+.plate {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+.plateFrame {
+  flex: 1;
+  min-height: 0;
+  border-radius: 2px;
+}
+.plateImg {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.05);
+  transition:
+    opacity 0.7s ease,
+    transform 1.4s var(--ease);
+}
+.plateImg[data-on] {
+  opacity: 1;
+  transform: none;
+}
+.plateCaption {
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--c-ink-muted);
+}
+
+.topPage {
+  display: none;
+}
+
+/* ---------- Tablet: four volumes still share the shelf ---------- */
+@media (max-width: 1023.98px) {
+  .shelf {
+    gap: 1rem;
+  }
+}
+
+/* ---------- Phones: a swipeable shelf; the opened book is the same two-page spread, sized to the screen ---------- */
+@media (max-width: 767.98px) {
+  .stage {
+    --ratio: 1.75;
+    --bw: calc((100vw - 2 * var(--gutter)) / 2 - 3px);
+    --bh: calc(var(--bw) * var(--ratio));
+    display: block;
+    min-height: 0;
+  }
+  .shelf {
+    justify-content: flex-start;
+    gap: 1.1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 1.4rem calc(50vw - 28vw) 0;
+    scrollbar-width: none;
+  }
+  .shelf::-webkit-scrollbar {
+    display: none;
+  }
+  .slot {
+    flex: 0 0 56vw;
+    scroll-snap-align: center;
+  }
+  .cover {
+    aspect-ratio: 1 / var(--ratio);
+  }
+  .ledge {
+    width: calc(100% + 2 * var(--gutter));
+    height: 16px;
+  }
+  .hint {
+    margin-top: 1.4rem;
+    text-align: center;
+  }
+  .hintWide {
+    display: none;
+  }
+  .hintTouch {
+    display: inline;
+  }
+  .reader {
+    inset: 0 0 auto 0;
+    justify-content: flex-start;
+  }
+  .switcher {
+    display: none;
+  }
+  .pager {
+    width: calc(2 * var(--bw));
+    justify-content: space-between;
+  }
+  .folio {
+    min-width: 0;
+    flex: 1;
+  }
+}
+/* The narrowest phones have the least room per page, so their books are a little taller. */
+@media (max-width: 359.98px) {
+  .stage {
+    --ratio: 1.95;
+  }
+}
+
+/* ---------- Two-page spread: everything on a page is sized from the page's own width ----------
+   The book grows and shrinks with the screen; its pages keep one set of proportions, like print.
+   Values are tuned at a 470px page (cqw = 1% of the page's width). */
+@media all {
+  .leafBack,
+  .leftPage,
+  .detailLayer,
+  .turnFace {
+    container-type: inline-size;
+  }
+  /* Page margins as percentages: padding resolves against the containing block's width, which is the
+     page itself (bw) or, for the two absolutely placed in the book, the whole spread (2 x bw). */
+  .detailLayer,
+  .turner[data-dir="next"] .turnFace:not(.turnBack),
+  .turner[data-dir="prev"] .turnBack {
+    padding: 7% 7% 5.5% 9%;
+  }
+  .page {
+    padding: 3.5% 3.5% 2.75% 4.5%;
+  }
+  .leafBack,
+  .turner[data-dir="next"] .turnBack,
+  .turner[data-dir="prev"] .turnFace:not(.turnBack) {
+    padding: 7% 9% 5.5% 7%;
+  }
+  .leftPage {
+    padding: 3.5% 4.5% 2.75% 3.5%;
+  }
+  .leafBack {
+    gap: 0;
+  }
+  .leafBack > * + * {
+    margin-top: 1.6cqw;
+  }
+  .leafBack > .journeySign {
+    margin-top: auto;
+  }
+
+  /* Labels: one size on every page */
+  .label,
+  .count,
+  .contentsLabel,
+  .plateCaption,
+  .entryStatus,
+  .explore,
+  .facts dt,
+  .journeySign span {
+    font-size: max(9px, 2.35cqw);
+  }
+
+  /* Inside cover */
+  .journeyMark {
+    width: 8.5cqw;
+    margin-bottom: 1.6cqw;
+  }
+  .journeyTitle {
+    margin-bottom: 1.2cqw;
+    font-size: 9.6cqw;
+  }
+  .journeyBody {
+    font-size: max(12px, 3.5cqw);
+    line-height: 1.7;
+  }
+  .journeySign {
+    gap: 1cqw;
+    padding-top: 3.2cqw;
+    font-size: 3.8cqw;
+  }
+
+  /* Contents page */
+  .pageHeadSingle {
+    gap: 1cqw;
+    padding-bottom: 3.4cqw;
+  }
+  .singleCity {
+    font-size: 7.4cqw;
+  }
+  .contentsLabel {
+    padding-bottom: 2.4cqw;
+  }
+  .contents > li,
+  .contents:has(> li:nth-child(4)) > li {
+    flex: 1 0 auto; /* share the page, never squeezed below the row's own content */
+    min-height: 0;
+    max-height: none;
+  }
+  .entry {
+    grid-template-columns: 3.6cqw 15cqw minmax(0, 1fr) auto;
+    gap: 2.8cqw;
+    padding: 1.6cqw 1cqw;
+  }
+  .entryNum {
+    display: block;
+    font-size: 3cqw;
+  }
+  .thumb {
+    width: 15cqw;
+  }
+  .entryText {
+    gap: 0.5cqw;
+  }
+  .entryName {
+    font-size: 4.2cqw;
+  }
+  .entryMeta {
+    font-size: max(11px, 3cqw);
+    white-space: normal; /* a long locality wraps rather than being cut */
+    line-height: 1.35;
+  }
+  .explore {
+    gap: 1cqw;
+  }
+  .explore svg {
+    width: 2.8cqw;
+    height: 2.8cqw;
+  }
+  .note {
+    gap: 1.4cqw;
+    padding-top: 3.4cqw;
+  }
+  .noteHead {
+    font-size: 3.8cqw;
+  }
+  .noteBody {
+    font-size: max(11px, 3.1cqw);
+  }
+
+  /* Project page and its plate */
+  .detail {
+    gap: 1.4cqw;
+  }
+  .detailName {
+    margin-top: 1.4cqw;
+    font-size: 9cqw;
+  }
+  .detailWhere {
+    font-size: max(11px, 3.1cqw);
+  }
+  .detailHeadline {
+    margin-top: 1.6cqw;
+    font-size: 3.9cqw;
+  }
+  .detailBody {
+    font-size: max(12px, 3.4cqw);
+    line-height: 1.65;
+  }
+  .facts {
+    gap: 2cqw 3.4cqw;
+    margin-top: 1.6cqw;
+    padding-top: 2.6cqw;
+  }
+  .facts dd {
+    font-size: max(12px, 3.3cqw);
+  }
+  .detailCta {
+    padding-top: 3cqw;
+  }
+  .platePage {
+    gap: 2.2cqw;
+  }
+}
+
+/* Phones: the same spread at a third of the width. Type is set from the page (cqw) with floors that keep it
+   legible, every page is left-aligned on one margin, the contents rows drop their thumbnails and page labels, and
+   the two lines of detail a 170px page has no room for (the tagline, the second paragraph, the note) are left to
+   the desktop book. */
+@media (max-width: 767.98px) {
+  .detailLayer,
+  .turner[data-dir="next"] .turnFace:not(.turnBack),
+  .turner[data-dir="prev"] .turnBack {
+    padding: 8% 6% 6% 10%;
+  }
+  .leafBack,
+  .turner[data-dir="next"] .turnBack,
+  .turner[data-dir="prev"] .turnFace:not(.turnBack) {
+    padding: 8% 10% 6% 7%;
+  }
+  .page {
+    padding: 4% 3% 3% 5.5%;
+  }
+  .leftPage {
+    padding: 4% 5.5% 3% 3%;
+  }
+  .label,
+  .count,
+  .contentsLabel,
+  .plateCaption,
+  .entryStatus,
+  .facts dt,
+  .journeySign span {
+    font-size: max(7px, 4.1cqw);
+    letter-spacing: 0.08em;
+  }
+  .plateLocality {
+    display: none;
+  }
+  .journeyMark {
+    width: 10cqw;
+    margin-bottom: 2cqw;
+  }
+  .leafBack > * + * {
+    margin-top: 2.4cqw;
+  }
+  .journeyTitle {
+    font-size: 10.5cqw;
+  }
+  .journeyBody {
+    font-size: max(9px, 5.4cqw);
+    line-height: 1.5;
+  }
+  .journeyBody + .journeyBody {
+    display: none;
+  }
+  .journeySign {
+    font-size: 5.8cqw;
+    padding-top: 3cqw;
+  }
+  .pageHeadSingle {
+    gap: 1.2cqw;
+    padding-bottom: 3cqw;
+  }
+  .singleCity {
+    font-size: 11cqw;
+  }
+  .contentsLabel {
+    padding-bottom: 2cqw;
+  }
+  .entry {
+    grid-template-columns: 8.4cqw minmax(0, 1fr) auto;
+    gap: 2cqw;
+    padding: 1.4cqw 0.5cqw;
+  }
+  .thumb {
+    display: none;
+  }
+  .entryNum {
+    font-size: max(8px, 4.8cqw);
+  }
+  .entryName {
+    font-size: max(10px, 6.8cqw);
+  }
+  .entryMeta {
+    font-size: max(8px, 4.8cqw);
+  }
+  /* A long volume (five or more) trades each row's status line for room: the project page carries it. */
+  .contentsBlock:has(.contents > li:nth-child(5)) .entryStatus {
+    display: none;
+  }
+  .explore {
+    font-size: 0; /* the arrow alone: "Page 01" has no room at this width */
+  }
+  .explore svg {
+    width: 4.6cqw;
+    height: 4.6cqw;
+  }
+  .note {
+    display: none;
+  }
+  .detail {
+    gap: 2cqw;
+  }
+  .detailName {
+    margin-top: 1.6cqw;
+    font-size: 11.5cqw;
+  }
+  .detailWhere {
+    font-size: max(8.5px, 5cqw);
+  }
+  .detailHeadline {
+    display: none;
+  }
+  .detailBody {
+    font-size: max(9px, 5.3cqw);
+    line-height: 1.5;
+  }
+  .facts {
+    gap: 2.4cqw 4cqw;
+    margin-top: 1.6cqw;
+    padding-top: 2.6cqw;
+  }
+  .facts dd {
+    font-size: max(9px, 5.3cqw);
+  }
+  /* The button spans the foot of the page, sized from the page so a long project name still fits. */
+  .detailCta {
+    padding-top: 3cqw;
+  }
+  .detailCta a {
+    gap: 2cqw;
+    width: 100%;
+    justify-content: space-between;
+    padding: 0.8cqw 0.8cqw 0.8cqw 3.6cqw;
+    font-size: max(7.5px, 4.4cqw);
+    letter-spacing: 0.06em;
+  }
+  .detailCta a > [class*="icon"] {
+    width: 10cqw;
+    height: 10cqw;
+  }
+  .detailCta a svg {
+    width: 4.6cqw;
+    height: 4.6cqw;
+  }
+  .platePage {
+    gap: 2.6cqw;
+  }
+}

@@ -40,7 +40,9 @@ export function ContactDock() {
         const r = card.getBoundingClientRect();
         return r.top < window.innerHeight - 40 && r.bottom > window.innerHeight - 140;
       };
-      const past = () => window.scrollY > window.innerHeight * 0.85 && !overCard();
+      // It also steps aside for as long as a city volume is open, so nothing floats over the book.
+      const overBook = () => !!document.querySelector("#city-volume");
+      const past = () => window.scrollY > window.innerHeight * 0.85 && !overCard() && !overBook();
       const st = ScrollTrigger.create({
         start: 0,
         end: "max",
@@ -48,7 +50,13 @@ export function ContactDock() {
         onRefresh: () => setShown(past()),
       });
       setShown(past());
-      return () => st.kill();
+      // The projects reader announces when a volume opens or closes, which may not involve a scroll.
+      const recheck = () => requestAnimationFrame(() => setShown(past()));
+      window.addEventListener("pramukh:reader", recheck);
+      return () => {
+        st.kill();
+        window.removeEventListener("pramukh:reader", recheck);
+      };
     },
     { scope: root },
   );

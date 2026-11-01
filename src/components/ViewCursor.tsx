@@ -64,7 +64,11 @@ export function ViewCursor() {
       });
     };
     const onDown = () => active && !reduce && gsap.to(el, { scale: 0.86, duration: 0.12, ease: "power2.out", overwrite: "auto" });
-    const onUp = () => active && !reduce && gsap.to(el, { scale: 1, duration: 0.35, ease: "back.out(2.2)", overwrite: "auto" });
+    const onUp = () => {
+      if (active && !reduce) gsap.to(el, { scale: 1, duration: 0.35, ease: "back.out(2.2)", overwrite: "auto" });
+      // A click can move or hide its target (a volume leaving the shelf): look again once it has.
+      window.setTimeout(() => settle(document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-cursor]") ?? null), 80);
+    };
     const onLeave = () => settle(null);
 
     window.addEventListener("pointermove", onMove, { passive: true });

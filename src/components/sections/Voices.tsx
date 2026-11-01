@@ -72,6 +72,28 @@ export function Voices() {
     track.scrollTo({ left: cards[next].offsetLeft - cards[0].offsetLeft, behavior: "smooth" });
   };
 
+  // Slideshow: on to the next story every few seconds, back to the first after the last. It waits while the
+  // row is hovered, touched or focused, while a video is open, off screen, or with reduced motion.
+  const [inView, setInView] = useState(false);
+  const [held, setHeld] = useState(false);
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.3 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!inView || held || playing || window.matchMedia(MQ.reduce).matches) return;
+    const t = window.setTimeout(() => {
+      const track = trackRef.current;
+      if (!track) return;
+      if (atEnd) track.scrollTo({ left: 0, behavior: "smooth" });
+      else go(1);
+    }, 3500);
+    return () => window.clearTimeout(t);
+  });
+
   return (
     <section ref={root} id="voices" data-nav-theme="light" className={styles.voices} aria-labelledby="voices-title">
       <div className={`container ${styles.inner}`}>
@@ -106,7 +128,17 @@ export function Voices() {
           </div>
         </div>
 
-        <ul ref={trackRef} className={styles.track} data-voices-track tabIndex={0} aria-label="Customer testimonials">
+        <ul
+          ref={trackRef}
+          className={styles.track}
+          data-voices-track
+          tabIndex={0}
+          aria-label="Customer testimonials"
+          onPointerEnter={() => setHeld(true)}
+          onPointerLeave={() => setHeld(false)}
+          onFocus={() => setHeld(true)}
+          onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setHeld(false)}
+        >
           {testimonials.map((t, i) =>
             t.video ? (
               <li key={t.name} className={`${styles.card} ${styles.videoCard}`} data-voice>

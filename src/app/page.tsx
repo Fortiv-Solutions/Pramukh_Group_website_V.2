@@ -2,7 +2,7 @@ import { Preloader } from "@/components/Preloader";
 import { Nav } from "@/components/sections/Nav";
 import { Hero } from "@/components/sections/Hero";
 import { Intro } from "@/components/sections/Intro";
-import { Portfolio } from "@/components/sections/Portfolio";
+import { ProjectExplorer } from "@/components/sections/ProjectExplorer";
 import { Build } from "@/components/sections/Build";
 import { Ownership } from "@/components/sections/Ownership";
 import { Showcase } from "@/components/sections/Showcase";
@@ -23,11 +23,11 @@ export default function Home() {
       <main id="main">
         <Hero />
         <Intro />
-        <Portfolio />
+        <ProjectExplorer />
         <Build />
+        <Trust />
         <Ownership />
         <Showcase />
-        <Trust />
         <WhereWeBuild />
         <Voices />
         <Enquiry />

@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Map as MapLibreMap } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { logoPaths } from "@/components/brand/logo-paths";
 import { Counter } from "@/components/ui/Counter";
-import { Img } from "@/components/ui/Img";
-import type { MediaKey } from "@/content/media";
 import { SplitReveal } from "@/components/ui/SplitReveal";
 import { gsap, useGSAP, MQ, prefersReducedMotion } from "@/lib/gsap";
 import { pipeline } from "@/content/site";
@@ -13,12 +13,6 @@ import styles from "./WhereWeBuild.module.css";
 
 type View = "All" | MapCity;
 const CITY_ORDER: MapCity[] = ["Silvassa", "Vapi", "Surat", "Daman"];
-const CITY_IMAGE: Record<MapCity, MediaKey> = {
-  Silvassa: "city/silvassa",
-  Vapi: "city/vapi",
-  Surat: "city/surat",
-  Daman: "city/daman",
-};
 const TILT: Record<View, number> = { All: 0, Surat: 32, Vapi: 34, Silvassa: 34, Daman: 30 };
 const pct = (lat: number, lng: number) => {
   const [x, y] = project(lat, lng);
@@ -31,6 +25,44 @@ const zoomFor = (v: View, stage: HTMLElement | null) => {
   const r = stage ? stage.clientHeight / stage.clientWidth : 0.8;
   return VIEWS[v].zoom * Math.max(1, (r / 0.8) * 0.9);
 };
+
+/**
+ * Satellite basemap: Esri World Imagery with Esri's place-name reference layer on top. Production use of
+ * Esri basemaps needs an ArcGIS account (free tier) and its attribution, which the map shows.
+ */
+const SATELLITE_STYLE = {
+  version: 8 as const,
+  sources: {
+    imagery: {
+      type: "raster" as const,
+      tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: "Imagery © Esri, Maxar, Earthstar Geographics",
+    },
+    places: {
+      type: "raster" as const,
+      tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"],
+      tileSize: 256,
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    { id: "imagery", type: "raster" as const, source: "imagery", paint: { "raster-saturation": -0.12, "raster-contrast": 0.06 } },
+    { id: "places", type: "raster" as const, source: "places", paint: { "raster-opacity": 0.85 } },
+  ],
+};
+/** Map zoom for a view: the same framing as the illustrated map (its zoom factor `s` shows 1.6°/s across). */
+const mapZoom = (s: number, width: number) => Math.log2((width * 360 * s) / (256 * 1.6));
+/** City views lean in and turn slightly; the overview looks straight down. */
+const PITCH: Record<View, number> = { All: 0, Surat: 52, Vapi: 55, Silvassa: 55, Daman: 50 };
+const BEARING: Record<View, number> = { All: 0, Surat: -14, Vapi: -10, Silvassa: -12, Daman: -8 };
+/** The overview frames all four cities, with room for the pins (which stand above their point) and the chip. */
+const CITY_BOUNDS: [[number, number], [number, number]] = [
+  [Math.min(...CITY_MARKERS.map((m) => m.lng)), Math.min(...CITY_MARKERS.map((m) => m.lat))],
+  [Math.max(...CITY_MARKERS.map((m) => m.lng)), Math.max(...CITY_MARKERS.map((m) => m.lat))],
+];
+const OVERVIEW_PADDING = { top: 90, bottom: 70, left: 70, right: 90 };
 
 /** Monogram glyph, reused by markers and pins. */
 function Mono({ className }: { className?: string }) {
@@ -52,6 +84,9 @@ export function WhereWeBuild() {
   const stageRef = useRef<HTMLDivElement>(null);
   const planeRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const satRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const [satellite, setSatellite] = useState(false);
   // Camera: focus point (plane units), zoom, tilt (deg). The SVG ground follows via CSS variables;
   // markers and pins live in a flat overlay, projected through the same tilt so they never clip.
   const cam = useRef({ fx: 0, fy: 0, s: 1, t: 0 });
@@ -91,6 +126,18 @@ export function WhereWeBuild() {
     const plane = planeRef.current;
     const overlay = overlayRef.current;
     if (!stage || !plane || !overlay) return;
+    const map = mapRef.current;
+    if (map) {
+      overlay.querySelectorAll<HTMLElement>("[data-lng]").forEach((el) => {
+        const pt = map.project([Number(el.dataset.lng), Number(el.dataset.lat)]);
+        const X = pt.x + Number(el.dataset.ox ?? 0);
+        const Y = pt.y + Number(el.dataset.oy ?? 0);
+        el.style.transform = `translate3d(${X.toFixed(1)}px, ${Y.toFixed(1)}px, 0) translate(-50%, -100%)`;
+        el.style.zIndex = String(Math.round(Y));
+      });
+      overlay.dataset.ready = "true";
+      return;
+    }
     const c = cam.current;
     plane.style.setProperty("--fx", String(c.fx));
     plane.style.setProperty("--fy", String(c.fy));
@@ -150,6 +197,68 @@ export function WhereWeBuild() {
     { scope: root },
   );
 
+  useEffect(() => {
+    const host = satRef.current;
+    const stage = stageRef.current;
+    if (!host || !stage) return;
+    let map: MapLibreMap | null = null;
+    let cancelled = false;
+    const io = new IntersectionObserver(
+      async ([e]) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        try {
+          const maplibre = (await import("maplibre-gl")).default;
+          if (cancelled) return;
+          const v = VIEWS[viewRef.current];
+          const overview = viewRef.current === "All";
+          map = new maplibre.Map({
+            container: host,
+            style: SATELLITE_STYLE,
+            ...(overview
+              ? { bounds: CITY_BOUNDS, fitBoundsOptions: { padding: OVERVIEW_PADDING } }
+              : { center: [v.lng, v.lat] as [number, number], zoom: mapZoom(zoomFor(viewRef.current, stage), stage.clientWidth) }),
+            pitch: PITCH[viewRef.current],
+            bearing: BEARING[viewRef.current],
+            attributionControl: { compact: true },
+            cooperativeGestures: true,
+            dragRotate: false,
+            pitchWithRotate: false,
+            maxPitch: 70,
+          });
+          map.scrollZoom.disable();
+          map.on("move", apply);
+          map.once("load", () => {
+            if (cancelled) return;
+            mapRef.current = map;
+            apply();
+            setSatellite(true);
+          });
+        } catch {
+          // No WebGL or the module failed: the illustrated map carries on.
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(stage);
+    const ro = new ResizeObserver(() => {
+      const m = mapRef.current;
+      if (!m) return;
+      m.resize();
+      const vv = VIEWS[viewRef.current];
+      if (viewRef.current === "All") m.fitBounds(CITY_BOUNDS, { padding: OVERVIEW_PADDING, duration: 0 });
+      else m.jumpTo({ center: [vv.lng, vv.lat], zoom: mapZoom(zoomFor(viewRef.current, stage), stage.clientWidth) });
+    });
+    ro.observe(stage);
+    return () => {
+      cancelled = true;
+      io.disconnect();
+      ro.disconnect();
+      mapRef.current = null;
+      map?.remove();
+    };
+  }, [apply]);
+
   // Fly the camera whenever the view changes.
   const viewRef = useRef<View>("All");
   const firstRun = useRef(true);
@@ -163,7 +272,20 @@ export function WhereWeBuild() {
       const v = VIEWS[view];
       const [fx, fy] = project(v.lat, v.lng);
       const d = prefersReducedMotion() ? 0 : 1;
-      gsap.to(cam.current, { fx, fy, s: zoomFor(view, stageRef.current), t: TILT[view], duration: 1.6 * d, ease: "power3.inOut", onUpdate: apply, onComplete: apply, overwrite: "auto" });
+      const map = mapRef.current;
+      if (map && view === "All")
+        map.fitBounds(CITY_BOUNDS, { padding: OVERVIEW_PADDING, pitch: 0, bearing: 0, duration: 2000 * d, essential: true });
+      else if (map)
+        map.flyTo({
+          center: [v.lng, v.lat],
+          zoom: mapZoom(zoomFor(view, stageRef.current), stageRef.current!.clientWidth),
+          pitch: PITCH[view],
+          bearing: BEARING[view],
+          duration: 2200 * d,
+          essential: true,
+        });
+      else
+        gsap.to(cam.current, { fx, fy, s: zoomFor(view, stageRef.current), t: TILT[view], duration: 1.6 * d, ease: "power3.inOut", onUpdate: apply, onComplete: apply, overwrite: "auto" });
       if (view !== "All")
         gsap.fromTo(
           `[data-pin][data-city="${view}"] [data-pin-body]`,
@@ -189,7 +311,7 @@ export function WhereWeBuild() {
               Where we build.
             </SplitReveal>
             <p className={styles.lede} data-reveal>
-              Four cities along the South Gujarat coast. Choose a city to see every Pramukh project there.
+              Four cities along the South Gujarat coast. Choose a city on the map or in the list to see every Pramukh project there.
             </p>
           </div>
           <ul className={styles.pipeline} aria-label="Under development now">
@@ -202,33 +324,12 @@ export function WhereWeBuild() {
           </ul>
         </header>
 
-        {/* City selector: four photographs in double-bezel frames. Selecting one flies the map to it. */}
-        <ul className={styles.cities} aria-label="Choose a city">
-          {CITY_ORDER.map((c) => (
-            <li key={c}>
-              <button
-                type="button"
-                className={styles.cityCard}
-                aria-pressed={view === c}
-                onClick={() => choose(view === c ? "All" : c)}
-                data-cursor={view === c ? undefined : "Explore"}
-              >
-                <span className={`frame ${styles.cityPhoto}`}>
-                  <Img k={CITY_IMAGE[c]} sizes="(max-width: 767px) 70vw, 24vw" />
-                </span>
-                <span className={styles.cityCaption}>
-                  <span className={`display ${styles.cityCardName}`}>{c}</span>
-                  <span className={styles.cityCardCount}>{counts[c]} {counts[c] === 1 ? "project" : "projects"}</span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
 
         <div className={styles.layout}>
           <div className={styles.mapCol}>
             <div className={styles.shell}>
-            <div ref={stageRef} className={styles.stage} data-view={view} role="group" aria-label="Map of Pramukh projects">
+            <div ref={stageRef} className={styles.stage} data-view={view} data-satellite={satellite || undefined} role="group" aria-label="Map of Pramukh projects">
+              <div ref={satRef} className={styles.sat} aria-hidden="true" />
               <div className={styles.tilt}>
                 <div ref={planeRef} className={styles.plane}>
                   <svg className={styles.geo} viewBox="0 0 1000 800" preserveAspectRatio="none" aria-hidden="true">
@@ -259,6 +360,8 @@ export function WhereWeBuild() {
                   className={styles.marker}
                   data-x={project(m.lat, m.lng)[0]}
                   data-y={project(m.lat, m.lng)[1]}
+                  data-lng={m.lng}
+                  data-lat={m.lat}
                   data-marker
                   data-side={m.city === "Daman" ? "left" : m.city === "Vapi" ? "left-low" : undefined}
                   data-visible={view === "All"}
@@ -283,6 +386,8 @@ export function WhereWeBuild() {
                   className={styles.pin}
                   data-x={project(p.lat, p.lng)[0]}
                   data-y={project(p.lat, p.lng)[1]}
+                  data-lng={p.lng}
+                  data-lat={p.lat}
                   data-ox={p.ox}
                   data-oy={p.oy}
                   data-pin
@@ -318,7 +423,7 @@ export function WhereWeBuild() {
                 <span className={styles.legendPin} aria-hidden="true">
                   <Mono className={styles.legendMono} />
                 </span>
-                Pramukh project · indicative location
+                Pramukh project · indicative location{satellite ? " · drag to explore" : ""}
               </p>
               {view !== "All" && (
                 <button type="button" className={styles.back} onClick={() => choose("All")}>

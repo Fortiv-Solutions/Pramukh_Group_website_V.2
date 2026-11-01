@@ -67,6 +67,13 @@ export const images = [
 
   // Brand
   { key: "brand/founder", source: "nathu-bhai.jpg", width: 401, alt: "Shri. Natubhai R. Bhatu, founder of Pramukh Group" },
+  // Leadership portraits, from pramukh.com/team.html.
+  { key: "leaders/natubhai", source: "nathu-bhai.jpg", width: 401, alt: "Mr. Natubhai R. Bhatu, Founder and Chairman" },
+  { key: "leaders/virambhai", source: "virambhai-r-bhatu.jpg", width: 401, alt: "Mr. Virambhai R. Bhatu, Promoter" },
+  { key: "leaders/devshibhai", source: "devshibhai-l-bhatu.jpg", width: 401, alt: "Mr. Devshibhai L. Bhatu, Senior Promoter" },
+  { key: "leaders/ajitbhai", source: "ajitbhai.png", width: 401, alt: "Mr. Ajitbhai H. Khodbhaya, Promoter" },
+  { key: "leaders/prashant", source: "prashant-bhatu.webp", width: 400, alt: "Mr. Prashant Bhatu, Managing Director, Surat" },
+  { key: "leaders/raj", source: "raj-bhatu.png", width: 401, alt: "Mr. Raj Bhatu, Sales and Marketing Director, Vapi" },
   { key: "brand/model", source: "our-projects.jpg", width: 650, alt: "Architectural scale model of a Pramukh development" },
   { key: "city/surat", source: "surat.jpg", width: 650, alt: "Aerial view of Surat and the Tapi river" },
   { key: "city/vapi", source: "vapi.jpg", width: 650, alt: "Aerial view of Vapi" },

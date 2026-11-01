@@ -53,6 +53,58 @@ export const foundingPromises = [
   { title: "Value for money", body: "Premium spaces offered at the best affordable prices." },
 ] as const;
 
+/**
+ * Leadership, from pramukh.com/team.html. Names and titles as published; bios from the same page with
+ * light grammar fixes only. `linkedin` is set only where the page links a real profile.
+ */
+export const leaders: {
+  name: string;
+  title: string;
+  years?: string;
+  bio: string;
+  image: "leaders/natubhai" | "leaders/virambhai" | "leaders/devshibhai" | "leaders/ajitbhai" | "leaders/prashant" | "leaders/raj";
+  linkedin?: string;
+}[] = [
+  {
+    name: "Mr. Natubhai R. Bhatu",
+    title: "Founder & Chairman",
+    bio: "A first-generation entrepreneur who has single-handedly inspired the company. He established Pramukh Group on the realisation of the potential the real estate sector possesses. Under his guidance and leadership the organisation has grown stronger, and today it can confidently be called a synonym for the finest quality.",
+    image: "leaders/natubhai",
+  },
+  {
+    name: "Mr. Virambhai R. Bhatu",
+    title: "Promoter",
+    bio: "Coming from a family with strong ethics and values, Virambhai is an efficient leader whose primary focus is the business and market knowledge, with complete control over construction matters.",
+    image: "leaders/virambhai",
+  },
+  {
+    name: "Mr. Devshibhai L. Bhatu",
+    title: "Senior Promoter",
+    years: "1969–2024",
+    bio: "A visionary who was always open to learning, with a constant hunt for opportunities to grow the business. A firm believer in business ethics and values, he was a leader in its true sense.",
+    image: "leaders/devshibhai",
+  },
+  {
+    name: "Mr. Ajitbhai H. Khodbhaya",
+    title: "Promoter",
+    bio: "An expert in corporate finance who heads the finance and accounts department. His cross-functional experience ensures the company's finances are directed the right way.",
+    image: "leaders/ajitbhai",
+  },
+  {
+    name: "Mr. Prashant Bhatu",
+    title: "Managing Director – Surat",
+    bio: "Passionate about creating unique land spaces, conceiving brilliant initiatives and understanding consumer behaviour, he is naturally a strong figure in the industry. The secret to his success is being inspired by challenges and always thinking ahead.",
+    image: "leaders/prashant",
+    linkedin: "https://www.linkedin.com/in/prashant-bhatu-65a041111/",
+  },
+  {
+    name: "Mr. Raj Bhatu",
+    title: "Sales & Marketing Director – Vapi",
+    bio: "A technocrat, entrepreneur and adventure enthusiast with a degree in civil engineering. Having held diverse roles in technology and real estate, he has deep insight into building homes of every size, and has nurtured home-grown leaders within the team.",
+    image: "leaders/raj",
+  },
+];
+
 export const cities = [
   {
     id: "silvassa",
