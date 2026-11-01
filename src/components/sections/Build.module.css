@@ -173,3 +173,11 @@
     display: block;
   }
 }
+
+/* Phones and tablets crossfade the slides, so the louvre mask (a full-screen repaint per frame) is not used. */
+@media (max-width: 1023.98px) {
+  .bg {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}

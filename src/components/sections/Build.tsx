@@ -62,11 +62,14 @@ export function Build() {
       // One pinned stage at every size; louvres open each new background, cards trade places.
       // Phones scrub over a shorter distance so each slide takes a comfortable thumb-swipe or two.
       mm.add(MQ.motion, () => {
-        const pace = window.innerWidth >= 1024 ? 1.1 : 0.85;
+        const phone = window.innerWidth < 1024;
+        const pace = phone ? 0.85 : 1.1;
         const bgs = q("[data-slide]");
         const cards = q("[data-card]");
 
-        gsap.fromTo(
+        // The stage's opening crop repaints the whole screen each frame, so phones skip it.
+        if (!phone)
+          gsap.fromTo(
           "[data-stage]",
           { clipPath: "inset(0% 3.5% 0% 3.5% round 18px)" },
           {
@@ -95,7 +98,12 @@ export function Build() {
         for (let i = 1; i < slides.length; i++) {
           const at = `s${i}`;
           tl.addLabel(at, i === 1 ? 0.15 : "+=0.25")
-            .fromTo(bgs[i], { "--louvre": "0%" }, { "--louvre": "104%", duration: 1, ease: "power2.inOut", immediateRender: true }, at)
+            .fromTo(
+              bgs[i],
+              phone ? { autoAlpha: 0 } : { "--louvre": "0%" },
+              phone ? { autoAlpha: 1, duration: 1, ease: "power1.inOut", immediateRender: true } : { "--louvre": "104%", duration: 1, ease: "power2.inOut", immediateRender: true },
+              at,
+            )
             .fromTo(bgs[i].querySelector("img"), { scale: 1.16 }, { scale: 1, duration: 1.2 }, at)
             .to(bgs[i - 1].querySelector("img"), { scale: 1.08, duration: 1 }, at)
             .to(cards[i - 1], { opacity: 0, yPercent: -12, duration: 0.45, ease: "power2.in" }, at)

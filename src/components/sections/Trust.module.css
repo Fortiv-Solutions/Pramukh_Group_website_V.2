@@ -176,6 +176,18 @@
   margin-block: auto;
   padding-block: 1rem 2rem;
 }
+.leadStack {
+  display: grid;
+  margin-block: auto;
+}
+.leadStack > * {
+  grid-area: 1 / 1;
+  margin-block: 0;
+}
+.leadGhost {
+  visibility: hidden;
+  pointer-events: none;
+}
 .leadRole {
   font-size: var(--t-label);
   font-weight: 500;

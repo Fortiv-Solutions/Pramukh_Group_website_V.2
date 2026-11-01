@@ -72,17 +72,33 @@ export function Voices() {
     track.scrollTo({ left: cards[next].offsetLeft - cards[0].offsetLeft, behavior: "smooth" });
   };
 
-  // Slideshow: on to the next story every few seconds, back to the first after the last. It waits while the
-  // row is hovered, touched or focused, while a video is open, off screen, or with reduced motion.
+  // Slideshow: on to the next story every few seconds, back to the first after the last. It waits while a
+  // mouse is over the row or it has focus, while a video is open, off screen, or with reduced motion. On touch
+  // screens a touch on the row stops it (a lifted finger is not a "leave"): it stays stopped while the reader
+  // is with the stories, and starts again after a tap elsewhere or once the section has scrolled away.
   const [inView, setInView] = useState(false);
-  const [held, setHeld] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const held = hovered || focused || touched;
   useEffect(() => {
     const el = root.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.3 });
+    const io = new IntersectionObserver(([e]) => {
+      setInView(e.isIntersecting);
+      if (!e.isIntersecting) setTouched(false);
+    }, { threshold: 0.3 });
     io.observe(el);
     return () => io.disconnect();
   }, []);
+  useEffect(() => {
+    if (!touched) return;
+    const away = (e: PointerEvent) => {
+      if (!trackRef.current?.contains(e.target as Node)) setTouched(false);
+    };
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, [touched]);
   useEffect(() => {
     if (!inView || held || playing || window.matchMedia(MQ.reduce).matches) return;
     const t = window.setTimeout(() => {
@@ -134,10 +150,12 @@ export function Voices() {
           data-voices-track
           tabIndex={0}
           aria-label="Customer testimonials"
-          onPointerEnter={() => setHeld(true)}
-          onPointerLeave={() => setHeld(false)}
-          onFocus={() => setHeld(true)}
-          onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setHeld(false)}
+          data-held={held || undefined}
+          onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(true)}
+          onPointerLeave={(e) => e.pointerType === "mouse" && setHovered(false)}
+          onPointerDown={(e) => e.pointerType !== "mouse" && setTouched(true)}
+          onFocus={() => setFocused(true)}
+          onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setFocused(false)}
         >
           {testimonials.map((t, i) =>
             t.video ? (

@@ -670,3 +670,12 @@
     display: none;
   }
 }
+
+/* Phones and tablets: the chip is solid enough to read without a live blur. */
+@media (max-width: 1023.98px) {
+  .chip {
+    background: rgb(255 253 249 / 0.95);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

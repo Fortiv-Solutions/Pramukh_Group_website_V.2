@@ -386,3 +386,10 @@
     padding-bottom: calc(2.75rem + 10px + 16px + 1.5rem);
   }
 }
+
+/* Phones and tablets: the soft glow is a 64px blur repainted as the footer moves, so it is left out. */
+@media (max-width: 1023.98px) {
+  .glow {
+    display: none;
+  }
+}

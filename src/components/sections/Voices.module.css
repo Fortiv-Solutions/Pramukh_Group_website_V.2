@@ -415,3 +415,17 @@
     font-size: var(--t-display-l);
   }
 }
+
+/* Phones and tablets: glass without the live blur, which repaints on every scroll frame. */
+@media (max-width: 1023.98px) {
+  .pillLight {
+    background: rgb(18 14 10 / 0.46);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .playRing {
+    background: rgb(255 252 247 / 0.26);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

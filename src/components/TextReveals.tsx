@@ -40,7 +40,8 @@ export function TextReveals() {
               gsap.to(soft, { autoAlpha: 1, y: 0, duration: 1.1, stagger: 0.06, ease: "expo.out", overwrite: "auto" }),
           });
 
-      // Line reveal for paragraphs.
+      // Line reveal for paragraphs. Once a paragraph has risen it stays put, even if it is re-split later.
+      const risen = new WeakSet<HTMLElement>();
       const splits = pick('[data-reveal="lines"]').map((el) =>
         SplitText.create(el, {
           type: "lines",
@@ -48,13 +49,20 @@ export function TextReveals() {
           aria: "none",
           autoSplit: true,
           onSplit: (self) =>
-            gsap.from(self.lines, {
-              yPercent: 105,
-              duration: 1.1,
-              stagger: 0.08,
-              ease: "expo.out",
-              scrollTrigger: { trigger: el, start: "top 88%", toggleActions: "play none none none" },
-            }),
+            risen.has(el)
+              ? undefined
+              : gsap.from(self.lines, {
+                  yPercent: 105,
+                  duration: 1.1,
+                  stagger: 0.08,
+                  ease: "expo.out",
+                  scrollTrigger: {
+                    trigger: el,
+                    start: "top 88%",
+                    toggleActions: "play none none none",
+                    onEnter: () => risen.add(el),
+                  },
+                }),
         }),
       );
 

@@ -224,3 +224,13 @@
     width: calc(2.75rem - 8px);
   }
 }
+
+/* Phones and tablets: a tinted glass with no live blur, so the hero scrolls without repainting under it. */
+@media (max-width: 1023.98px) {
+  .card,
+  .mini {
+    background: rgb(28 22 16 / 0.38);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

@@ -44,7 +44,8 @@ export function Showcase() {
         const infos = q("[data-sc-info]");
         const n = layers.length;
 
-        gsap.set(layers.slice(1), { clipPath: "inset(100% 0% 0% 0%)" });
+        // Phones slide each photo up over the last (a GPU transform); larger screens wipe it open with clip-path.
+        gsap.set(layers.slice(1), phone ? { yPercent: 100 } : { clipPath: "inset(100% 0% 0% 0%)" });
         gsap.set(infos.slice(1), { opacity: 0, y: 40, pointerEvents: "none" });
 
         const tl = gsap.timeline({
@@ -71,7 +72,7 @@ export function Showcase() {
           const at = `p${i}`;
           tl.addLabel(at, i === 1 ? 0.2 : "+=0.3");
           marksRef.current.push(tl.labels[at] + 0.5);
-          tl.to(layers[i], { clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: "power2.inOut" }, at)
+          tl.to(layers[i], phone ? { yPercent: 0, duration: 1, ease: "power2.inOut" } : { clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: "power2.inOut" }, at)
             .fromTo(layers[i].querySelector("[data-sc-inset]"), { yPercent: phone ? 6 : 18, scale: phone ? 1.14 : 1.08 }, { yPercent: 0, scale: 1, duration: 1.1, ease: "power2.out" }, at)
             .to(layers[i - 1].querySelector("[data-sc-inset]"), { yPercent: phone ? -4 : -10, duration: 1 }, at)
             .to(infos[i - 1], { opacity: 0, y: -40, duration: 0.45, ease: "power2.in" }, at)

@@ -169,18 +169,17 @@ export function Trust() {
             </div>
 
             <div className={styles.leadInfo}>
-              <div className={styles.leadDetail} data-lead-detail aria-live="polite">
-                <p className={styles.leadRole}>{person.title}</p>
-                <h4 className={`display ${styles.leadName}`}>{person.name}</h4>
-                {person.years && <p className={styles.leadYears}>{person.years}</p>}
-                <p className={styles.leadBio}>{person.bio}</p>
-                {person.linkedin && (
-                  <div>
-                    <TextLink href={person.linkedin} external>
-                      LinkedIn
-                    </TextLink>
+              {/* Every leader's details sit in one cell, invisible except the current one, so the block is always
+                  as tall as the longest bio and changing leader never moves the page below. */}
+              <div className={styles.leadStack}>
+                {leaders.map((l) => (
+                  <div key={l.name} className={`${styles.leadDetail} ${styles.leadGhost}`} aria-hidden="true" inert>
+                    <LeaderDetail person={l} />
                   </div>
-                )}
+                ))}
+                <div className={styles.leadDetail} data-lead-detail aria-live="polite">
+                  <LeaderDetail person={person} />
+                </div>
               </div>
 
               <div className={styles.leadFoot}>
@@ -223,5 +222,23 @@ export function Trust() {
         </div>
       </div>
     </section>
+  );
+}
+
+function LeaderDetail({ person }: { person: (typeof leaders)[number] }) {
+  return (
+    <>
+      <p className={styles.leadRole}>{person.title}</p>
+      <h4 className={`display ${styles.leadName}`}>{person.name}</h4>
+      {person.years && <p className={styles.leadYears}>{person.years}</p>}
+      <p className={styles.leadBio}>{person.bio}</p>
+      {person.linkedin && (
+        <div>
+          <TextLink href={person.linkedin} external>
+            LinkedIn
+          </TextLink>
+        </div>
+      )}
+    </>
   );
 }
